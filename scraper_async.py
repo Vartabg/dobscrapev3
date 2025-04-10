@@ -12,7 +12,7 @@ class DOBScraperAsync:
         params = {
             "$limit": self.batch_size,
             "$offset": offset,
-            "$where": "violation_category LIKE '%ACTIVE%' AND boro IN('BK','QN')"
+            "$where": "violation_category LIKE '%ACTIVE%' AND boro IN('BK','QN') AND issue_date >= '2024-01-01T00:00:00'"
         }
         async with session.get(self.base_url, params=params) as response:
             return await response.json()
