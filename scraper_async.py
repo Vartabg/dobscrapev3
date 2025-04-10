@@ -27,21 +27,16 @@ async def fetch_violations(session, offset=0):
     Returns:
         List of violation records
     """
-    # Build the query with proper filters
-    query = f"""
-    $where=issue_date >= '{START_DATE}' 
-    AND active_status = 'ACTIVE'
-    AND (borough = 'BROOKLYN' OR borough = 'QUEENS')
-    """
-    
-    # Remove newlines and extra spaces for a clean URL
-    query = " ".join(query.split())
-    
-    # Build the full URL with pagination
-    url = f"{NYC_OPEN_DATA_API}?{query}&$limit={MAX_LIMIT}&$offset={offset}"
+    # Build the query with proper filters based on the actual CSV structure
+    params = {
+        "$where": f"issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
+        "$limit": MAX_LIMIT,
+        "$offset": offset,
+        "status": "ACTIVE"  # We only want active violations
+    }
     
     try:
-        async with session.get(url) as response:
+        async with session.get(NYC_OPEN_DATA_API, params=params) as response:
             if response.status == 200:
                 return await response.json()
             else:
@@ -95,21 +90,38 @@ def clean_violations_data(violations):
     # Convert to DataFrame
     df = pd.DataFrame(violations)
     
-    # Select and rename important columns
-    columns_to_keep = [
-        'number', 'issue_date', 'violation_type_code', 'violation_category',
-        'violation_type', 'description', 'disposition', 'device_number',
-        'ecb_number', 'bin', 'boro', 'block', 'lot', 'house_number', 
-        'street', 'zip_code', 'borough', 'status', 'active_status'
+    # Define exact columns to match the CSV structure
+    expected_columns = [
+        'boro', 'block', 'lot', 'issue_date', 'violation_type_code',
+        'violation_number', 'house_number', 'street', 'disposition_date',
+        'disposition_comments', 'status', 'severity'
     ]
     
-    # Keep only columns that exist in the actual data
-    existing_columns = [col for col in columns_to_keep if col in df.columns]
-    df = df[existing_columns]
+    # Only keep columns that exist in the data
+    existing_columns = [col for col in expected_columns if col in df.columns]
     
-    # Convert issue_date to datetime
+    # If we have no matching columns, keep all columns
+    if not existing_columns:
+        print("Warning: None of the expected columns found in data, keeping all columns")
+    else:
+        df = df[existing_columns]
+    
+    # Convert issue_date to datetime if it exists
     if 'issue_date' in df.columns:
-        df['issue_date'] = pd.to_datetime(df['issue_date']).dt.strftime('%Y-%m-%d')
+        try:
+            df['issue_date'] = pd.to_datetime(df['issue_date']).dt.strftime('%Y-%m-%d')
+        except Exception as e:
+            print(f"Warning: Could not convert issue_date: {e}")
+    
+    # Convert other date fields if they exist
+    if 'disposition_date' in df.columns:
+        try:
+            df['disposition_date'] = pd.to_datetime(df['disposition_date'], errors='coerce').dt.strftime('%Y-%m-%d')
+        except Exception as e:
+            print(f"Warning: Could not convert disposition_date: {e}")
+    
+    # Add a date_collected column with today's date
+    df['date_collected'] = datetime.datetime.now().strftime('%Y-%m-%d')
     
     return df
 
