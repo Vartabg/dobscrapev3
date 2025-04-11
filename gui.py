@@ -26,16 +26,19 @@ class DOBScraperGUI(QWidget):
         self.start_button.setStyleSheet(
             "border-radius: 60px; background-color: #1E90FF; color: white; font-size: 16px;"
         )
-        self.start_button.clicked.connect(self.show_date_options)
+        start_layout = QHBoxLayout()
+        start_layout.addStretch()
+        start_layout.addWidget(self.start_button)
+        start_layout.addStretch()
+        self.layout.addSpacing(10)
+        self.layout.addLayout(start_layout)
 
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setWordWrap(True)
         self.label.setFixedWidth(320)
-        self.label.setFont(QFont("Arial Rounded MT Bold", 11))
+        self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
 
-        self.layout.addSpacing(10)
-        self.layout.addWidget(self.start_button)
         self.layout.addSpacing(20)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -46,6 +49,8 @@ class DOBScraperGUI(QWidget):
         self.range_buttons = []
         self.grid_layout = QGridLayout()
         self.extra_buttons = []
+
+        self.start_button.clicked.connect(self.show_date_options)
 
     def show_date_options(self):
         self.start_button.hide()
@@ -83,7 +88,7 @@ class DOBScraperGUI(QWidget):
         self.start_date = today - datetime.timedelta(days=days) if days is not None else datetime.date(2020, 1, 1)
         print(f"Using start date: {self.start_date}")
 
-        self.movie = QMovie("flag.gif")
+        self.movie = QMovie(os.path.join(os.path.dirname(__file__), "flag.gif"))
         self.label.setMovie(self.movie)
         self.movie.start()
         QTimer.singleShot(200, self.fetch_data)
@@ -110,28 +115,32 @@ class DOBScraperGUI(QWidget):
     def show_oyvey_screen(self):
         self.label.setText("sorry, no results found. Please try a different time period or fuck off")
         self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-        self.label.setFont(QFont("Arial Rounded MT Bold", 11))
-        self.movie = QMovie(os.path.join(os.path.dirname(__file__), "oyvey.gif"))
-        self.label.setMovie(self.movie)
-        self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
-        self.movie.frameChanged.connect(self.check_oyvey_loops)
-        self.movie.start()
-        self.oyvey_loops = 0
+        self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        gif_path = os.path.join(os.path.dirname(__file__), "oyvey.gif")
+        if os.path.exists(gif_path):
+            self.movie = QMovie(gif_path)
+            self.label.setMovie(self.movie)
+            self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
+            self.movie.frameChanged.connect(self.check_oyvey_loops)
+            self.movie.start()
+            self.oyvey_loops = 0
+        else:
+            print("Oyvey.gif not found!")
 
     def check_oyvey_loops(self, frame_number):
-        if self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
+        if self.movie and self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
             self.oyvey_loops += 1
             if self.oyvey_loops >= 2:
                 self.movie.stop()
-                self.label.setText("Try another time range, or just close it out.")
+                self.label.setText("Try a different time range, or just close it out.")
                 self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-                self.label.setFont(QFont("Arial Rounded MT Bold", 11))
+                self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
         layout = QHBoxLayout()
 
-        home_btn = QPushButton("Home")
+        home_btn = QPushButton("Return Home")
         home_btn.setFixedSize(80, 80)
         home_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         home_btn.setStyleSheet(
@@ -140,7 +149,7 @@ class DOBScraperGUI(QWidget):
         )
         home_btn.clicked.connect(self.reset_to_home)
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton("Close App")
         close_btn.setFixedSize(80, 80)
         close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         close_btn.setStyleSheet(
@@ -177,14 +186,14 @@ class DOBScraperGUI(QWidget):
 
     def show_mazel_tov(self):
         self.movie.stop()
-        self.movie = QMovie("mazel_tov.gif")
+        self.movie = QMovie(os.path.join(os.path.dirname(__file__), "mazel_tov.gif"))
         self.movie.frameChanged.connect(self.check_gif_loops)
         self.label.setMovie(self.movie)
         self.movie.start()
         self.loop_counter = 0
 
     def check_gif_loops(self, frame_number):
-        if self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
+        if self.movie and self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
             self.loop_counter += 1
             if self.loop_counter >= 2:
                 self.movie.stop()
