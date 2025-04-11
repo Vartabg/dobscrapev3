@@ -118,16 +118,14 @@ class DOBScraperGUI(QWidget):
             self.movie.start()
             self.oyvey_loops = 0
         else:
-            self.label.setText("sorry, no results found.
-Please try another time period or fuck off.")
+            self.label.setText("sorry, no results found.\nPlease try another time period or fuck off.")
 
     def check_oyvey_loops(self, frame_number):
         if self.movie and self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
             self.oyvey_loops += 1
             if self.oyvey_loops >= 2:
                 self.movie.stop()
-                self.label.setText("sorry, no results found.
-Please try another time period or fuck off.")
+                self.label.setText("sorry, no results found.\nPlease try another time period or fuck off.")
                 self.label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
                 self.show_home_close_buttons()
 
