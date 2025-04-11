@@ -9,7 +9,7 @@ START_DATE = "20240101"
 
 async def fetch_violations(session, offset=0):
     params = {
-        "$where": f"issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
+        "$where": f"issue_date >= '{START_DATE}' AND boro IN ('3','4')",
         "$limit": MAX_LIMIT,
         "$offset": offset
     }
