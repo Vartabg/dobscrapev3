@@ -13,17 +13,24 @@ def build_address(row):
     return ', '.join(part for part in parts if part)
 
 def geocode_addresses(df):
-    geolocator = Nominatim(user_agent="dobscrape")
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    geolocator = Nominatim(user_agent="dobscrape-map")
+    geocode = RateLimiter(
+        geolocator.geocode,
+        min_delay_seconds=1,
+        max_retries=3,
+        error_wait_seconds=5,
+        swallow_exceptions=True,
+        timeout=10
+    )
     df['full_address'] = df.apply(build_address, axis=1)
-    df['location'] = df['full_address'].apply(geocode)
+    df['location'] = df['full_address'].apply(lambda addr: geocode(addr))
     df['latitude'] = df['location'].apply(lambda loc: loc.latitude if loc else None)
     df['longitude'] = df['location'].apply(lambda loc: loc.longitude if loc else None)
     return df.drop(columns=['location'])
 
 def create_map(df, output_html="violations_map.html"):
     df = df.dropna(subset=['latitude', 'longitude'])
-    start_coords = (40.7128, -74.0060)  # NYC default
+    start_coords = (40.7128, -74.0060)
     map_ = folium.Map(location=start_coords, zoom_start=11)
     for _, row in df.iterrows():
         popup_text = f"{row['house_number']} {row['street']}<br>{row['violation_type']}"
