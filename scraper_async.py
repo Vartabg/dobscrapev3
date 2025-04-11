@@ -7,7 +7,6 @@ NYC_OPEN_DATA_API = "https://data.cityofnewyork.us/resource/3h2n-5cm9.json"
 MAX_LIMIT = 50000
 START_DATE = "20240101"
 
-# Only keep these fields in the final CSV
 FINAL_COLUMNS = [
     'boro', 'block', 'lot', 'issue_date',
     'house_number', 'street', 'violation_category', 'violation_type'
@@ -51,7 +50,9 @@ def clean_violations_data(violations):
     df = pd.DataFrame(violations)
     df = df[[col for col in FINAL_COLUMNS if col in df.columns]]
     if 'issue_date' in df.columns:
-        df['issue_date'] = pd.to_datetime(df['issue_date'], format="%Y%m%d", errors='coerce').dt.strftime('%Y-%m-%d')
+        df['issue_date'] = pd.to_datetime(df['issue_date'], format="%Y%m%d", errors='coerce')
+        df = df.sort_values(by='issue_date', ascending=False)
+        df['issue_date'] = df['issue_date'].dt.strftime('%Y-%m-%d')
     df['date_collected'] = datetime.datetime.now().strftime('%Y-%m-%d')
     return df
 
