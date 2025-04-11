@@ -9,7 +9,7 @@ START_DATE = "20240101"  # Must match the format used by the API (YYYYMMDD)
 
 async def fetch_violations(session, offset=0):
     params = {
-        "$where": f"violation_category LIKE '%ACTIVE%' AND issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
+        "$where": f"violation_category NOT LIKE '%DISMISSED%' AND issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
         "$limit": MAX_LIMIT,
         "$offset": offset
     }
