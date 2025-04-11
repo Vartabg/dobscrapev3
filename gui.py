@@ -26,7 +26,7 @@ class DOBScraperGUI(QWidget):
             "All Since 2020"
         ])
         self.dropdown.setCurrentIndex(3)
-        self.dropdown.setStyleSheet("font-size: 14px; padding: 6px; background-color: #F8F8F8; border: 1px solid #DCDCDC; border-radius: 6px;")
+        self.dropdown.setStyleSheet("font-size: 14px; padding: 6px; background-color: #e8f0fe; border: none; border-radius: 12px; color: #1E90FF; font-weight: bold;")
 
         self.button = QPushButton("Start")
         self.button.setFixedSize(120, 120)
@@ -38,7 +38,10 @@ class DOBScraperGUI(QWidget):
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+                self.dropdown.setFixedWidth(200)
+        self.layout.addSpacing(20)
         self.layout.addWidget(self.dropdown)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
