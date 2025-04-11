@@ -38,11 +38,11 @@ class DOBScraperGUI(QWidget):
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-                self.dropdown.setFixedWidth(200)
-        self.layout.addSpacing(20)
-        self.layout.addWidget(self.dropdown)
-        self.layout.addSpacing(10)
-        self.layout.addWidget(self.button)
+        self.dropdown.setFixedWidth(200)
+self.layout.addSpacing(20)
+self.layout.addWidget(self.dropdown)
+self.layout.addSpacing(10)
+self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
 
