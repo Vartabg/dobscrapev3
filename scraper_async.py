@@ -7,9 +7,15 @@ NYC_OPEN_DATA_API = "https://data.cityofnewyork.us/resource/3h2n-5cm9.json"
 MAX_LIMIT = 50000
 START_DATE = "20240101"
 
+# Only keep these fields in the final CSV
+FINAL_COLUMNS = [
+    'boro', 'block', 'lot', 'issue_date',
+    'house_number', 'street', 'violation_category', 'violation_type'
+]
+
 async def fetch_violations(session, offset=0):
     params = {
-        "$where": f"issue_date >= '{START_DATE}' AND boro IN ('3','4')",
+        "$where": f"issue_date >= '{START_DATE}' AND boro IN ('3','4') AND violation_category NOT LIKE '%DISMISSED%'",
         "$limit": MAX_LIMIT,
         "$offset": offset
     }
@@ -43,18 +49,9 @@ def clean_violations_data(violations):
     if not violations:
         return pd.DataFrame()
     df = pd.DataFrame(violations)
-    expected_columns = [
-        'boro', 'block', 'lot', 'issue_date', 'violation_type_code',
-        'violation_number', 'house_number', 'street', 'disposition_date',
-        'disposition_comments', 'status', 'severity'
-    ]
-    existing_columns = [col for col in expected_columns if col in df.columns]
-    if existing_columns:
-        df = df[existing_columns]
+    df = df[[col for col in FINAL_COLUMNS if col in df.columns]]
     if 'issue_date' in df.columns:
         df['issue_date'] = pd.to_datetime(df['issue_date'], format="%Y%m%d", errors='coerce').dt.strftime('%Y-%m-%d')
-    if 'disposition_date' in df.columns:
-        df['disposition_date'] = pd.to_datetime(df['disposition_date'], errors='coerce').dt.strftime('%Y-%m-%d')
     df['date_collected'] = datetime.datetime.now().strftime('%Y-%m-%d')
     return df
 
