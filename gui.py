@@ -1,7 +1,8 @@
 import sys
 import os
 import traceback
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
+import datetime
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox
 from PyQt6.QtGui import QMovie
 from PyQt6.QtCore import Qt, QTimer
 from scraper_async import scrape_violations
@@ -11,11 +12,21 @@ class DOBScraperGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
-        self.setFixedSize(400, 400)
+        self.setFixedSize(400, 460)
         self.setStyleSheet("background-color: white;")
 
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.dropdown = QComboBox()
+        self.dropdown.addItems([
+            "Last 30 Days",
+            "Last 3 Months",
+            "Last 6 Months",
+            "All Since 2020"
+        ])
+        self.dropdown.setCurrentIndex(3)
+        self.dropdown.setStyleSheet("font-size: 14px; padding: 6px;")
 
         self.button = QPushButton("Start")
         self.button.setFixedSize(120, 120)
@@ -27,6 +38,7 @@ class DOBScraperGUI(QWidget):
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        self.layout.addWidget(self.dropdown)
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -35,9 +47,23 @@ class DOBScraperGUI(QWidget):
         self.output_file = "violations_dashboard.xlsx"
         self.loop_counter = 0
 
+    def get_start_date(self):
+        today = datetime.date.today()
+        selection = self.dropdown.currentText()
+        if "30" in selection:
+            return today - datetime.timedelta(days=30)
+        elif "3 Months" in selection:
+            return today - datetime.timedelta(days=90)
+        elif "6 Months" in selection:
+            return today - datetime.timedelta(days=180)
+        return datetime.date(2020, 1, 1)
+
     def start_scraping(self):
         if self.state == "start":
+            self.start_date = self.get_start_date()
+            print(f"Selected start date: {self.start_date}")
             self.button.hide()
+            self.dropdown.hide()
             self.movie = QMovie("flag.gif")
             self.label.setMovie(self.movie)
             self.movie.start()
@@ -49,7 +75,7 @@ class DOBScraperGUI(QWidget):
     def fetch_data(self):
         try:
             print("Starting scrape...")
-            df = scrape_violations()
+            df = scrape_violations(start_date=self.start_date)
             print(f"Scrape completed. Rows: {len(df)}")
             if df.empty:
                 print("No data returned.")
