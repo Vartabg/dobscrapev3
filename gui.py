@@ -2,8 +2,8 @@ import sys
 import os
 import traceback
 import datetime
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
-from PyQt6.QtGui import QMovie
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QGridLayout
+from PyQt6.QtGui import QMovie, QCursor
 from PyQt6.QtCore import Qt, QTimer
 from scraper_async import scrape_violations
 from excel_generator import generate_excel_dashboard
@@ -12,9 +12,8 @@ class DOBScraperGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
-        self.setFixedSize(400, 460)
+        self.setFixedSize(400, 600)
         self.setStyleSheet("background-color: white;")
-
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -30,7 +29,7 @@ class DOBScraperGUI(QWidget):
 
         self.layout.addSpacing(10)
         self.layout.addWidget(self.start_button)
-        self.layout.addSpacing(10)
+        self.layout.addSpacing(20)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
 
@@ -41,25 +40,43 @@ class DOBScraperGUI(QWidget):
 
     def show_date_options(self):
         self.start_button.hide()
-        ranges = [
+        options = [
+            ("Today", 0),
+            ("Last 7 Days", 7),
             ("Last 30 Days", 30),
             ("Last 3 Months", 90),
             ("Last 6 Months", 180),
-            ("All Since 2015", None)
+            ("Last Year", 365),
+            ("Last 2 Years", 730),
+            ("All Since 2020", None),
         ]
-        for label, days in ranges:
+
+        grid_layout = QGridLayout()
+        row, col = 0, 0
+        for idx, (label, days) in enumerate(options):
             btn = QPushButton(label)
-            btn.setFixedHeight(40)
-            btn.setStyleSheet("border-radius: 20px; background-color: #F0F8FF; color: #1E90FF; font-size: 14px;")
+            btn.setFixedSize(160, 40)
+            btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            btn.setStyleSheet(
+                "QPushButton { background-color: #e8f0fe; color: #1E90FF; font-size: 14px; border-radius: 12px; } "
+                "QPushButton:hover { background-color: #d0e0ff; font-weight: bold; border: 1px solid #1E90FF; }"
+            )
             btn.clicked.connect(lambda _, d=days: self.start_scraping(d))
-            self.layout.insertWidget(self.layout.count() - 1, btn)
+            grid_layout.addWidget(btn, row, col)
+            col += 1
+            if col > 1:
+                col = 0
+                row += 1
             self.range_buttons.append(btn)
+
+        self.layout.insertLayout(1, grid_layout)
 
     def start_scraping(self, days):
         for btn in self.range_buttons:
             btn.hide()
+
         today = datetime.date.today()
-        self.start_date = today - datetime.timedelta(days=days) if days else datetime.date(2015, 1, 1)
+        self.start_date = today - datetime.timedelta(days=days) if days is not None else datetime.date(2020, 1, 1)
         print(f"Using start date: {self.start_date}")
 
         self.movie = QMovie("flag.gif")
