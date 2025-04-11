@@ -32,6 +32,7 @@ class DOBScraperGUI(QWidget):
 
         self.state = "start"
         self.output_file = "violations.csv"
+        self.loop_counter = 0
 
     def start_scraping(self):
         if self.state == "start":
@@ -41,7 +42,6 @@ class DOBScraperGUI(QWidget):
             self.movie.start()
             QTimer.singleShot(200, self.fetch_data)
             self.state = "fetching"
-
         elif self.state == "view":
             self.view_results()
 
@@ -76,22 +76,24 @@ class DOBScraperGUI(QWidget):
     def show_mazel_tov(self):
         self.movie.stop()
         self.movie = QMovie("mazel_tov.gif")
-        self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
-        self.movie.setLoopCount(3)
+        self.movie.frameChanged.connect(self.check_gif_loops)
         self.label.setMovie(self.movie)
         self.movie.start()
+        self.loop_counter = 0
 
-        total_duration = self.movie.loopCount() * self.movie.nextFrameDelay() * self.movie.frameCount()
-        QTimer.singleShot(total_duration, self.show_view_button)
-
-    def show_view_button(self):
-        self.label.clear()
-        self.button.setText("View Results")
-        self.button.setStyleSheet(
-            "border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;"
-        )
-        self.button.show()
-        self.state = "view"
+    def check_gif_loops(self, frame_number):
+        if self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
+            self.loop_counter += 1
+            print(f"Loop {self.loop_counter} completed.")
+            if self.loop_counter >= 3:
+                self.movie.stop()
+                self.label.clear()
+                self.button.setText("View Results")
+                self.button.setStyleSheet(
+                    "border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;"
+                )
+                self.button.show()
+                self.state = "view"
 
     def view_results(self):
         if os.path.exists(self.output_file):
