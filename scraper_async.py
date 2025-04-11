@@ -23,7 +23,9 @@ def get_lead_type(issue_date):
 
 async def fetch_violations(session, offset=0, start_date="2020-01-01"):
     params = {
-        "$where": f"issue_date >= '{start_date}' AND boro IN ('3','4') AND lower(violation_type) LIKE '%unsafe%'",
+        "$where": f"issue_date >= '{start_date}' AND boro IN ('3','4') "
+                  f"AND lower(violation_type) LIKE '%unsafe%' "
+                  f"AND violation_category NOT LIKE '%DISMISSED%'",
         "$limit": MAX_LIMIT,
         "$offset": offset
     }
