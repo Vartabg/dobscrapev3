@@ -12,7 +12,7 @@ class DOBScraperGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
-        self.setFixedSize(400, 620)
+        self.setFixedSize(360, 520)
         self.setStyleSheet("background-color: white;")
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
