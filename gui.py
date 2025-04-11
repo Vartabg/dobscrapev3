@@ -115,21 +115,21 @@ class DOBScraperGUI(QWidget):
             self.oyvey_loops += 1
             if self.oyvey_loops >= 2:
                 self.movie.stop()
-                self.label.setText("Nothing found for that time range. Wanna try a different one?")
-                self.label.setStyleSheet("font-size: 14px; color: #1E90FF; padding: 8px;")
+                self.label.setText("Looks like nothin' came up. Try another time range or just call it a day.")
+                self.label.setStyleSheet("font-size: 14px; color: #1E90FF; padding: 8px; qproperty-alignment: AlignCenter;")
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
         home_btn = QPushButton("Home")
-        home_btn.setFixedSize(140, 40)
+        home_btn.setFixedSize(120, 40)
         home_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        home_btn.setStyleSheet("QPushButton { background-color: #3CB371; color: white; font-size: 14px; border-radius: 10px; } QPushButton:hover { background-color: #2ea35c; }")
+        home_btn.setStyleSheet("QPushButton { background-color: #3CB371; color: white; font-size: 14px; border-radius: 20px; } QPushButton:hover { background-color: #2ea35c; }")
         home_btn.clicked.connect(self.reset_to_home)
 
         close_btn = QPushButton("Close")
-        close_btn.setFixedSize(140, 40)
+        close_btn.setFixedSize(120, 40)
         close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        close_btn.setStyleSheet("QPushButton { background-color: #87A8C3; color: white; font-size: 14px; border-radius: 10px; } QPushButton:hover { background-color: #6b94b4; }")
+        close_btn.setStyleSheet("QPushButton { background-color: #87A8C3; color: white; font-size: 14px; border-radius: 20px; } QPushButton:hover { background-color: #6b94b4; }")
         close_btn.clicked.connect(self.close)
 
         self.layout.addWidget(home_btn)
