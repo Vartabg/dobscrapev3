@@ -2,8 +2,10 @@ import sys
 import os
 import traceback
 import datetime
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QGridLayout
-from PyQt6.QtGui import QMovie, QCursor
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGridLayout
+)
+from PyQt6.QtGui import QMovie, QCursor, QFont
 from PyQt6.QtCore import Qt, QTimer
 from scraper_async import scrape_violations
 from excel_generator import generate_excel_dashboard
@@ -13,7 +15,9 @@ class DOBScraperGUI(QWidget):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
         self.setFixedSize(360, 460)
+        self.setWindowFlags(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setStyleSheet("background-color: white;")
+
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -26,6 +30,9 @@ class DOBScraperGUI(QWidget):
 
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setWordWrap(True)
+        self.label.setFixedWidth(320)
+        self.label.setFont(QFont("Segoe UI Hebrew", 11))
 
         self.layout.addSpacing(10)
         self.layout.addWidget(self.start_button)
@@ -101,8 +108,9 @@ class DOBScraperGUI(QWidget):
             self.show_close_button()
 
     def show_oyvey_screen(self):
-        self.label.setText("Eh, bupkis! Nothing came up for that time range.")
-        self.label.setStyleSheet("font-size: 14px; color: #1E90FF; padding: 10px;")
+        self.label.setText("Looks like nothin' came up for that time range.")
+        self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
+        self.label.setFont(QFont("Segoe UI Hebrew", 11))
         self.movie = QMovie("oyvey.gif")
         self.label.setMovie(self.movie)
         self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
@@ -115,25 +123,39 @@ class DOBScraperGUI(QWidget):
             self.oyvey_loops += 1
             if self.oyvey_loops >= 2:
                 self.movie.stop()
-                self.label.setText("Looks like nothin' came up. Try another time range or just call it a day.")
-                self.label.setStyleSheet("font-size: 14px; color: #1E90FF; padding: 8px; qproperty-alignment: AlignCenter;")
+                self.label.setText("Try another time range, or just close it out.")
+                self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
+                self.label.setFont(QFont("Segoe UI Hebrew", 11))
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
+        layout = QHBoxLayout()
+
         home_btn = QPushButton("Home")
-        home_btn.setFixedSize(120, 40)
+        home_btn.setFixedSize(80, 80)
         home_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        home_btn.setStyleSheet("QPushButton { background-color: #3CB371; color: white; font-size: 14px; border-radius: 20px; } QPushButton:hover { background-color: #2ea35c; }")
+        home_btn.setStyleSheet(
+            "QPushButton { background-color: #3CB371; color: white; font-size: 13px; border-radius: 40px; }"
+            "QPushButton:hover { background-color: #2ea35c; }"
+        )
         home_btn.clicked.connect(self.reset_to_home)
 
         close_btn = QPushButton("Close")
-        close_btn.setFixedSize(120, 40)
+        close_btn.setFixedSize(80, 80)
         close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        close_btn.setStyleSheet("QPushButton { background-color: #87A8C3; color: white; font-size: 14px; border-radius: 20px; } QPushButton:hover { background-color: #6b94b4; }")
+        close_btn.setStyleSheet(
+            "QPushButton { background-color: #87A8C3; color: white; font-size: 13px; border-radius: 40px; }"
+            "QPushButton:hover { background-color: #6b94b4; }"
+        )
         close_btn.clicked.connect(self.close)
 
-        self.layout.addWidget(home_btn)
-        self.layout.addWidget(close_btn)
+        layout.addStretch()
+        layout.addWidget(home_btn)
+        layout.addSpacing(20)
+        layout.addWidget(close_btn)
+        layout.addStretch()
+
+        self.layout.addLayout(layout)
         self.extra_buttons = [home_btn, close_btn]
 
     def reset_to_home(self):
@@ -146,7 +168,9 @@ class DOBScraperGUI(QWidget):
 
     def show_close_button(self):
         self.start_button.setText("Close")
-        self.start_button.setStyleSheet("border-radius: 60px; background-color: #87A8C3; color: white; font-size: 16px;")
+        self.start_button.setStyleSheet(
+            "border-radius: 60px; background-color: #87A8C3; color: white; font-size: 16px;"
+        )
         self.start_button.clicked.disconnect()
         self.start_button.clicked.connect(self.close)
         self.start_button.show()
@@ -166,7 +190,9 @@ class DOBScraperGUI(QWidget):
                 self.movie.stop()
                 self.label.clear()
                 self.start_button.setText("View Results")
-                self.start_button.setStyleSheet("border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;")
+                self.start_button.setStyleSheet(
+                    "border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;"
+                )
                 self.start_button.clicked.disconnect()
                 self.start_button.clicked.connect(self.view_results)
                 self.start_button.show()
