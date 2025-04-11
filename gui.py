@@ -58,9 +58,17 @@ class DOBScraperGUI(QWidget):
     def show_mazel_tov(self):
         self.movie.stop()
         self.movie = QMovie("mazel_tov.gif")
+        self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
+        self.movie.setLoopCount(3)  # play exactly 3 times
         self.label.setMovie(self.movie)
         self.movie.start()
 
+        # Wait for gif to finish (assume each loop is ~1.5 seconds, adjust as needed)
+        total_duration = self.movie.loopCount() * self.movie.nextFrameDelay() * self.movie.frameCount()
+        QTimer.singleShot(total_duration, self.show_view_button)
+
+    def show_view_button(self):
+        self.label.clear()
         self.button.setText("View Results")
         self.button.setStyleSheet(
             "border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;"
