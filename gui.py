@@ -139,7 +139,15 @@ class DOBScraperGUI(QWidget):
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()  # Changed to QVBoxLayout for better centering
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.label)
+        layout.addSpacing(20)
+
+        button_layout = QHBoxLayout()
+        button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         home_btn = QPushButton("Home")
         home_btn.setFixedSize(72, 72)
@@ -159,10 +167,11 @@ class DOBScraperGUI(QWidget):
         )
         close_btn.clicked.connect(self.close)
 
-        layout.addStretch()
-        layout.addWidget(home_btn)
-        layout.addSpacing(20)
-        layout.addWidget(close_btn)
+        button_layout.addWidget(home_btn)
+        button_layout.addSpacing(20)
+        button_layout.addWidget(close_btn)
+
+        layout.addLayout(button_layout)
         layout.addStretch()
 
         self.layout.addSpacing(10)
@@ -202,6 +211,12 @@ class DOBScraperGUI(QWidget):
             if self.loop_counter >= 2:
                 self.movie.stop()
                 self.label.clear()
+
+                # Center the View Results button
+                view_layout = QVBoxLayout()
+                view_button_layout = QHBoxLayout()
+                view_button_layout.addStretch()
+
                 self.start_button.setText("View Results")
                 self.start_button.setStyleSheet(
                     "border-radius: 60px; background-color: #3CB371; color: white; font-size: 16px;"
@@ -209,12 +224,21 @@ class DOBScraperGUI(QWidget):
                 self.start_button.clicked.disconnect()
                 self.start_button.clicked.connect(self.view_results)
                 self.start_button.show()
+
+                view_button_layout.addWidget(self.start_button)
+                view_button_layout.addStretch()
+
+                view_layout.addLayout(view_button_layout)
+                view_layout.addStretch()
+                self.layout.addLayout(view_layout)
+
                 self.state = "view"
 
     def view_results(self):
         if os.path.exists(self.output_file):
             os.startfile(self.output_file)
         QTimer.singleShot(300, self.close)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
