@@ -35,7 +35,11 @@ class DOBScraperGUI(QWidget):
         self.label.setFont(QFont("Segoe UI Hebrew", 11))
 
         self.layout.addSpacing(10)
-        self.layout.addWidget(self.start_button)
+        start_layout = QHBoxLayout()
+        start_layout.addStretch()
+        start_layout.addWidget(self.start_button)
+        start_layout.addStretch()
+        self.layout.addLayout(start_layout)
         self.layout.addSpacing(20)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
