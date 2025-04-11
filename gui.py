@@ -19,6 +19,7 @@ class DOBScraperGUI(QWidget):
         self.setStyleSheet("background-color: white;")
 
         self.layout = QVBoxLayout()
+        self.layout.addStretch()  # Add spacing at the top
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.start_button = QPushButton("Start")
@@ -30,8 +31,8 @@ class DOBScraperGUI(QWidget):
         start_layout.addStretch()
         start_layout.addWidget(self.start_button)
         start_layout.addStretch()
-        self.layout.addSpacing(15)
         self.layout.addLayout(start_layout)
+        self.layout.addStretch()  # Add spacing at the bottom to center
 
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
