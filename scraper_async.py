@@ -5,11 +5,11 @@ import pandas as pd
 
 NYC_OPEN_DATA_API = "https://data.cityofnewyork.us/resource/3h2n-5cm9.json"
 MAX_LIMIT = 50000
-START_DATE = "20240101"  # Must match the format used by the API (YYYYMMDD)
+START_DATE = "20240101"
 
 async def fetch_violations(session, offset=0):
     params = {
-        "$where": f"violation_category NOT LIKE '%DISMISSED%' AND issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
+        "$where": f"issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
         "$limit": MAX_LIMIT,
         "$offset": offset
     }
@@ -18,8 +18,10 @@ async def fetch_violations(session, offset=0):
             if response.status == 200:
                 return await response.json()
             else:
+                print(f"API returned status {response.status}")
                 return []
-    except Exception:
+    except Exception as e:
+        print(f"Error during API call: {e}")
         return []
 
 async def fetch_all_violations():
@@ -27,6 +29,7 @@ async def fetch_all_violations():
     offset = 0
     async with aiohttp.ClientSession() as session:
         while True:
+            print(f"Fetching batch at offset {offset}...")
             batch = await fetch_violations(session, offset)
             if not batch:
                 break
@@ -60,14 +63,6 @@ def scrape_violations():
     return clean_violations_data(violations)
 
 if __name__ == "__main__":
-    df = scrape_violations()
-    if not df.empty:
-        print(f"Fetched {len(df)} records")
-        df.to_csv("violations.csv", index=False)
-    else:
-        print("No records found")
-
-if __name__ == "__main__":
     print("Fetching violations from NYC Open Data...")
     df = scrape_violations()
     print(f"Fetched {len(df)} records")
@@ -79,6 +74,5 @@ if __name__ == "__main__":
     else:
         print("⚠️ No records found. This may indicate an API or filter issue.")
 
-    # Show sample rows for review
     print("=== Sample Output ===")
     print(df.head(5))
