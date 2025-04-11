@@ -85,7 +85,7 @@ class DOBScraperGUI(QWidget):
         if self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
             self.loop_counter += 1
             print(f"Loop {self.loop_counter} completed.")
-            if self.loop_counter >= 3:
+            if self.loop_counter >= 2:
                 self.movie.stop()
                 self.label.clear()
                 self.button.setText("View Results")
