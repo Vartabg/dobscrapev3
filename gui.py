@@ -14,12 +14,12 @@ class DOBScraperGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
-        self.setFixedSize(360, 460)
+        self.setFixedSize(360, 400)
         self.setWindowFlags(Qt.WindowType.MSWindowsFixedSizeDialogHint)
         self.setStyleSheet("background-color: white;")
 
         self.layout = QVBoxLayout()
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.start_button = QPushButton("Start")
         self.start_button.setFixedSize(120, 120)
@@ -30,17 +30,19 @@ class DOBScraperGUI(QWidget):
         start_layout.addStretch()
         start_layout.addWidget(self.start_button)
         start_layout.addStretch()
-        self.layout.addSpacing(10)
+        self.layout.addSpacing(15)
         self.layout.addLayout(start_layout)
 
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setWordWrap(True)
         self.label.setFixedWidth(320)
-        self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        self.label.setStyleSheet("font-size: 13px; color: #1E90FF;")
+        self.label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
 
-        self.layout.addSpacing(20)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.label)
+        self.layout.addSpacing(10)
         self.setLayout(self.layout)
 
         self.state = "start"
@@ -86,8 +88,6 @@ class DOBScraperGUI(QWidget):
 
         today = datetime.date.today()
         self.start_date = today - datetime.timedelta(days=days) if days is not None else datetime.date(2020, 1, 1)
-        print(f"Using start date: {self.start_date}")
-
         self.movie = QMovie(os.path.join(os.path.dirname(__file__), "flag.gif"))
         self.label.setMovie(self.movie)
         self.movie.start()
@@ -96,26 +96,19 @@ class DOBScraperGUI(QWidget):
 
     def fetch_data(self):
         try:
-            print("Starting scrape...")
             df = scrape_violations(start_date=self.start_date)
-            print(f"Scrape completed. Rows: {len(df)}")
             if df.empty:
                 self.show_oyvey_screen()
                 return
-
             generate_excel_dashboard(df, self.output_file)
-            print("Excel dashboard created.")
             self.show_mazel_tov()
         except Exception:
-            print("Error during fetch:")
             traceback.print_exc()
             self.label.setText("Something broke. What can I tell ya?")
             self.show_close_button()
 
     def show_oyvey_screen(self):
-        self.label.setText("sorry, no results found. Please try a different time period or fuck off")
-        self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-        self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        self.label.clear()
         gif_path = os.path.join(os.path.dirname(__file__), "oyvey.gif")
         if os.path.exists(gif_path):
             self.movie = QMovie(gif_path)
@@ -125,35 +118,36 @@ class DOBScraperGUI(QWidget):
             self.movie.start()
             self.oyvey_loops = 0
         else:
-            print("Oyvey.gif not found!")
+            self.label.setText("sorry, no results found.
+Please try another time period or fuck off.")
 
     def check_oyvey_loops(self, frame_number):
         if self.movie and self.movie.currentFrameNumber() == self.movie.frameCount() - 1:
             self.oyvey_loops += 1
             if self.oyvey_loops >= 2:
                 self.movie.stop()
-                self.label.setText("Try a different time range, or just close it out.")
-                self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-                self.label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+                self.label.setText("sorry, no results found.
+Please try another time period or fuck off.")
+                self.label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
         layout = QHBoxLayout()
 
-        home_btn = QPushButton("Return Home")
-        home_btn.setFixedSize(80, 80)
+        home_btn = QPushButton("Home")
+        home_btn.setFixedSize(72, 72)
         home_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         home_btn.setStyleSheet(
-            "QPushButton { background-color: #3CB371; color: white; font-size: 13px; border-radius: 40px; }"
+            "QPushButton { background-color: #3CB371; color: white; font-size: 12px; border-radius: 36px; }"
             "QPushButton:hover { background-color: #2ea35c; }"
         )
         home_btn.clicked.connect(self.reset_to_home)
 
-        close_btn = QPushButton("Close App")
-        close_btn.setFixedSize(80, 80)
+        close_btn = QPushButton("Close")
+        close_btn.setFixedSize(72, 72)
         close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         close_btn.setStyleSheet(
-            "QPushButton { background-color: #87A8C3; color: white; font-size: 13px; border-radius: 40px; }"
+            "QPushButton { background-color: #87A8C3; color: white; font-size: 12px; border-radius: 36px; }"
             "QPushButton:hover { background-color: #6b94b4; }"
         )
         close_btn.clicked.connect(self.close)
@@ -164,6 +158,7 @@ class DOBScraperGUI(QWidget):
         layout.addWidget(close_btn)
         layout.addStretch()
 
+        self.layout.addSpacing(10)
         self.layout.addLayout(layout)
         self.extra_buttons = [home_btn, close_btn]
 
