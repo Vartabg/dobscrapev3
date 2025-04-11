@@ -107,6 +107,9 @@ class DOBScraperGUI(QWidget):
         )
 
     def start_scraping(self, days):
+        # Hide all buttons immediately
+        for btn in self.range_buttons + self.advanced_buttons + [self.toggle_button]:
+            btn.hide()
         for btn in self.range_buttons + self.advanced_buttons:
             btn.hide()
         if isinstance(days, str) and "," in days:
