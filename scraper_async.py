@@ -66,3 +66,19 @@ if __name__ == "__main__":
         df.to_csv("violations.csv", index=False)
     else:
         print("No records found")
+
+if __name__ == "__main__":
+    print("Fetching violations from NYC Open Data...")
+    df = scrape_violations()
+    print(f"Fetched {len(df)} records")
+
+    if not df.empty:
+        print("Saving to violations.csv...")
+        df.to_csv("violations.csv", index=False)
+        print("Done.")
+    else:
+        print("⚠️ No records found. This may indicate an API or filter issue.")
+
+    # Show sample rows for review
+    print("=== Sample Output ===")
+    print(df.head(5))
