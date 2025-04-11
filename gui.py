@@ -32,14 +32,10 @@ class DOBScraperGUI(QWidget):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setWordWrap(True)
         self.label.setFixedWidth(320)
-        self.label.setFont(QFont("Segoe UI Hebrew", 11))
+        self.label.setFont(QFont("Arial Rounded MT Bold", 11))
 
         self.layout.addSpacing(10)
-        start_layout = QHBoxLayout()
-        start_layout.addStretch()
-        start_layout.addWidget(self.start_button)
-        start_layout.addStretch()
-        self.layout.addLayout(start_layout)
+        self.layout.addWidget(self.start_button)
         self.layout.addSpacing(20)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -112,10 +108,10 @@ class DOBScraperGUI(QWidget):
             self.show_close_button()
 
     def show_oyvey_screen(self):
-        self.label.setText("Looks like nothin' came up for that time range.")
+        self.label.setText("sorry, no results found. Please try a different time period or fuck off")
         self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-        self.label.setFont(QFont("Segoe UI Hebrew", 11))
-        self.movie = QMovie("oyvey.gif")
+        self.label.setFont(QFont("Arial Rounded MT Bold", 11))
+        self.movie = QMovie(os.path.join(os.path.dirname(__file__), "oyvey.gif"))
         self.label.setMovie(self.movie)
         self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
         self.movie.frameChanged.connect(self.check_oyvey_loops)
@@ -129,7 +125,7 @@ class DOBScraperGUI(QWidget):
                 self.movie.stop()
                 self.label.setText("Try another time range, or just close it out.")
                 self.label.setStyleSheet("font-size: 13px; color: #1E90FF; padding: 8px;")
-                self.label.setFont(QFont("Segoe UI Hebrew", 11))
+                self.label.setFont(QFont("Arial Rounded MT Bold", 11))
                 self.show_home_close_buttons()
 
     def show_home_close_buttons(self):
