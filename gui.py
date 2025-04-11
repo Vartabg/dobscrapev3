@@ -1,5 +1,6 @@
 import sys
 import os
+import traceback
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
 from PyQt6.QtGui import QMovie
 from PyQt6.QtCore import Qt, QTimer
@@ -46,24 +47,40 @@ class DOBScraperGUI(QWidget):
 
     def fetch_data(self):
         try:
+            print("Starting scrape...")
             df = scrape_violations()
+            print(f"Scrape completed. Rows: {len(df)}")
             if df.empty:
-                self.close()
+                print("No data returned.")
+                self.label.setText("No data found.")
+                self.button.setText("Close")
+                self.button.setStyleSheet("border-radius: 60px; background-color: red; color: white; font-size: 16px;")
+                self.button.show()
+                self.button.clicked.disconnect()
+                self.button.clicked.connect(self.close)
+                self.state = "error"
                 return
             df.to_csv(self.output_file, index=False)
             self.show_mazel_tov()
-        except Exception:
-            self.close()
+        except Exception as e:
+            print("An error occurred during scraping:")
+            traceback.print_exc()
+            self.label.setText("Error occurred")
+            self.button.setText("Close")
+            self.button.setStyleSheet("border-radius: 60px; background-color: red; color: white; font-size: 16px;")
+            self.button.show()
+            self.button.clicked.disconnect()
+            self.button.clicked.connect(self.close)
+            self.state = "error"
 
     def show_mazel_tov(self):
         self.movie.stop()
         self.movie = QMovie("mazel_tov.gif")
         self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
-        self.movie.setLoopCount(3)  # play exactly 3 times
+        self.movie.setLoopCount(3)
         self.label.setMovie(self.movie)
         self.movie.start()
 
-        # Wait for gif to finish (assume each loop is ~1.5 seconds, adjust as needed)
         total_duration = self.movie.loopCount() * self.movie.nextFrameDelay() * self.movie.frameCount()
         QTimer.singleShot(total_duration, self.show_view_button)
 
