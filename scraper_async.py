@@ -6,14 +6,12 @@ import pandas as pd
 NYC_OPEN_DATA_API = "https://data.cityofnewyork.us/resource/3h2n-5cm9.json"
 MAX_LIMIT = 50000
 START_DATE = "2024-01-01T00:00:00.000"
-TARGET_BOROUGHS = ["BROOKLYN", "QUEENS"]
 
 async def fetch_violations(session, offset=0):
     params = {
-        "$where": f"issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
+        "$where": f"violation_category LIKE '%ACTIVE%' AND issue_date >= '{START_DATE}' AND (boro = 'BROOKLYN' OR boro = 'QUEENS')",
         "$limit": MAX_LIMIT,
-        "$offset": offset,
-        "status": "ACTIVE"
+        "$offset": offset
     }
     try:
         async with session.get(NYC_OPEN_DATA_API, params=params) as response:
