@@ -5,7 +5,7 @@ import pandas as pd
 
 NYC_OPEN_DATA_API = "https://data.cityofnewyork.us/resource/3h2n-5cm9.json"
 MAX_LIMIT = 50000
-START_DATE = "2024-01-01T00:00:00.000"
+START_DATE = "20240101"  # Must match the format used by the API (YYYYMMDD)
 
 async def fetch_violations(session, offset=0):
     params = {
@@ -49,7 +49,7 @@ def clean_violations_data(violations):
     if existing_columns:
         df = df[existing_columns]
     if 'issue_date' in df.columns:
-        df['issue_date'] = pd.to_datetime(df['issue_date']).dt.strftime('%Y-%m-%d')
+        df['issue_date'] = pd.to_datetime(df['issue_date'], format="%Y%m%d", errors='coerce').dt.strftime('%Y-%m-%d')
     if 'disposition_date' in df.columns:
         df['disposition_date'] = pd.to_datetime(df['disposition_date'], errors='coerce').dt.strftime('%Y-%m-%d')
     df['date_collected'] = datetime.datetime.now().strftime('%Y-%m-%d')
