@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLa
 from PyQt6.QtGui import QMovie
 from PyQt6.QtCore import Qt, QTimer
 from scraper_async import scrape_violations
+from excel_generator import generate_excel_dashboard
 
 class DOBScraperGUI(QWidget):
     def __init__(self):
@@ -31,7 +32,7 @@ class DOBScraperGUI(QWidget):
         self.setLayout(self.layout)
 
         self.state = "start"
-        self.output_file = "violations.csv"
+        self.output_file = "violations_dashboard.xlsx"
         self.loop_counter = 0
 
     def start_scraping(self):
@@ -60,7 +61,9 @@ class DOBScraperGUI(QWidget):
                 self.button.clicked.connect(self.close)
                 self.state = "error"
                 return
-            df.to_csv(self.output_file, index=False)
+
+            generate_excel_dashboard(df, self.output_file)
+            print("Excel dashboard created.")
             self.show_mazel_tov()
         except Exception as e:
             print("An error occurred during scraping:")
