@@ -189,6 +189,10 @@ class DOBViolationsApp(QMainWindow):
             else:
                 excel_generator.generate_excel(violations)
                 self.show_mazel_tov()
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            # Show fallback for any errors
+            self.show_no_results()
         finally:
             loop.close()
 
@@ -228,13 +232,9 @@ class DOBViolationsApp(QMainWindow):
         # Start animation after fade-in
         QTimer.singleShot(300, lambda: self.mazel_movie.start())
         
-        # Show view results button after animation plays exactly 3 times
-        # Calculate duration for 3 loops
-        single_duration = self.mazel_movie.duration()
-        if single_duration <= 0:  # If duration cannot be determined
-            single_duration = 3000  # Default to 3 seconds
-            
-        QTimer.singleShot(single_duration * 3, self.show_view_results)
+        # Show view results button after a fixed duration (approximately 3 loops)
+        # Using fixed time instead of movie.duration() which is not available
+        QTimer.singleShot(9000, self.show_view_results)  # 3 seconds per loop * 3 loops
 
     def show_view_results(self):
         """Show the View Results button after animation finishes"""
@@ -323,12 +323,9 @@ class DOBViolationsApp(QMainWindow):
         # Start animation after fade-in
         QTimer.singleShot(300, lambda: oyvey_movie.start())
         
-        # Show home and close buttons after animation plays exactly 2 times
-        single_duration = oyvey_movie.duration()
-        if single_duration <= 0:  # If duration cannot be determined
-            single_duration = 3000  # Default to 3 seconds
-            
-        QTimer.singleShot(single_duration * 2, self.show_home_and_close_buttons)
+        # Show home and close buttons after fixed duration (approximately 2 loops)
+        # Using fixed time instead of movie.duration() which is not available
+        QTimer.singleShot(6000, self.show_home_and_close_buttons)  # 3 seconds per loop * 2 loops
 
     def show_home_and_close_buttons(self):
         """Show home and close buttons after no results animation"""
@@ -404,17 +401,17 @@ class DOBViolationsApp(QMainWindow):
     def fade_in_widget(self, widget, duration=300):
         """Create a fade-in animation for a widget"""
         # Create opacity effect
-        self.opacity_effect = QGraphicsOpacityEffect(widget)
-        widget.setGraphicsEffect(self.opacity_effect)
-        self.opacity_effect.setOpacity(0)
+        opacity_effect = QGraphicsOpacityEffect(widget)
+        widget.setGraphicsEffect(opacity_effect)
+        opacity_effect.setOpacity(0)
         
         # Create animation
-        self.animation = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.animation.setDuration(duration)
-        self.animation.setStartValue(0)
-        self.animation.setEndValue(1)
-        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self.animation.start()
+        animation = QPropertyAnimation(opacity_effect, b"opacity")
+        animation.setDuration(duration)
+        animation.setStartValue(0)
+        animation.setEndValue(1)
+        animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+        animation.start()
 
     def clear_layout(self):
         """Clear all widgets from the main layout"""
