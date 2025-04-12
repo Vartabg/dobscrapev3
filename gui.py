@@ -643,32 +643,3 @@ def main():
 if __name__ == "__main__":
     main()
 # --- END OF FILE gui.py ---
-
-
-Key Implementation Details:
-
-Structure: Uses a QMainWindow containing a QStackedWidget. Each screen (Start, Date, Loading, Success, Oy Vey) is a separate QWidget created by dedicated methods (_create_start_screen, etc.) and added to the stack.
-
-Styling: Constants and specific stylesheet strings (START_BUTTON_STYLE, DATE_BUTTON_STYLE, etc.) are defined at the top based precisely on the brief's requirements (colors, sizes, border-radius for circles/rounded rectangles).
-
-Layout: QVBoxLayout and QHBoxLayout are used extensively with Qt.AlignmentFlag.AlignCenter to achieve the centered design. Spacers (QSpacerItem) are used where needed to push content.
-
-Screen Switching: The show_screen method handles switching the QStackedWidget's visible widget and also manages starting/stopping relevant QMovie animations.
-
-Date Screen Logic:
-
-Buttons are vertically stacked.
-
-The _on_date_button_selected method handles checking/unchecking and reveals the "Fetch Data" / "Back" buttons only after a selection is made.
-
-The _reset_date_screen method ensures buttons are cleared and action buttons hidden when returning to this screen.
-
-Success Screen Logic: The mazel_tov_movie's finished signal is connected to _show_success_buttons to reveal the View Results/Home buttons after the 3 loops complete.
-
-Backend Integration: The WorkerThread and view_results logic are carried over and integrated into the new screen flow. Paths (assets_dir, excel_path) are constructed relative to the script location.
-
-Text/Labels: Text content, including the specific "Oy Vey" message, matches the brief.
-
-Window: Set to 800x600 fixed size with no title text.
-
-Please place this gui.py file alongside your scraper_async.py, excel_generator.py, and the assets folder. Run it (python gui.py) and test thoroughly against the UX brief. Let me know the results!
