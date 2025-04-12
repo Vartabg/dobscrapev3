@@ -41,6 +41,7 @@ UX_HOVER_GRAY = "#F8F8F8"
 FONT_FAMILY = "Arial, Segoe UI"
 
 DEFAULT_EXCEL_PATH = "violations.xlsx"
+MAZEL_TOV_LOOPS = 2 # Set desired loop count here
 
 # --- Stylesheets based on UX Design Brief ---
 MAIN_WINDOW_STYLE = f"background-color: {UX_WHITE};"
@@ -268,6 +269,7 @@ class Mr4InARowApp(QMainWindow):
         self.flag_movie = None
         self.mazel_tov_movie = None
         self.oyvey_movie = None
+        self.mazel_tov_loop_count = 0 # Initialize loop counter
 
         self._create_start_screen()
         self._create_date_screen()
@@ -286,7 +288,7 @@ class Mr4InARowApp(QMainWindow):
         else:
              print("Error: Start screen widget not created.")
 
-    # --- Screen Creation Methods (Indentation Checked) ---
+    # --- Screen Creation Methods ---
 
     def _create_start_screen(self):
         self.start_screen_widget = QWidget()
@@ -394,17 +396,24 @@ class Mr4InARowApp(QMainWindow):
         if os.path.exists(mazel_tov_path):
             self.mazel_tov_movie = QMovie(mazel_tov_path)
             self.success_gif_label.setMovie(self.mazel_tov_movie)
+            # Connect frameChanged for manual loop counting
             try:
-                self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
+                self.mazel_tov_movie.frameChanged.disconnect(self._count_mazel_tov_loops)
             except TypeError:
-                pass
-            self.mazel_tov_movie.finished.connect(self._show_success_buttons)
+                pass # Not connected
+            self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
+            # Remove finished signal connection, as counter method handles showing buttons
+            # try:
+            #     self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
+            # except TypeError:
+            #     pass
         else:
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
             self.mazel_tov_movie = None
-            QTimer.singleShot(200, self._show_success_buttons)
+            # Show buttons immediately if no GIF
+            QTimer.singleShot(100, self._show_success_buttons)
 
         layout.addWidget(self.success_gif_label)
 
@@ -530,18 +539,14 @@ class Mr4InARowApp(QMainWindow):
             self.flag_movie.start()
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
-                 # *** Set loop count to 2 using setProperty ***
-                 self.mazel_tov_movie.setProperty("loopCount", 2)
-                 # *********************************************
+                 # Reset loop counter and start animation
+                 self.mazel_tov_loop_count = 0
                  self.home_success_button.hide()
                  self.view_results_button.hide()
-                 self.mazel_tov_loop_count = 0
-        self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
-        self.mazel_tov_movie.start()
-             # Buttons shown via timer or finished signal
+                 self.mazel_tov_movie.start()
+             # Buttons shown via timer or frameChanged signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
-             # Set loops to infinite (-1) for Oy Vey, or remove setProperty to use default
-             self.oyvey_movie.setProperty("loopCount", -1) 
+             # Oy Vey movie loops infinitely by default
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
@@ -580,16 +585,37 @@ class Mr4InARowApp(QMainWindow):
             self.fetch_button.hide()
             self.back_button.hide()
 
+    # Method to count loops for Mazel Tov GIF
+    def _count_mazel_tov_loops(self, frame_number):
+        if not self.mazel_tov_movie: # Safety check
+            return
+
+        # Check if it's the last frame (frame numbers are 0-based)
+        is_last_frame = (frame_number == self.mazel_tov_movie.frameCount() - 1)
+
+        if is_last_frame:
+            self.mazel_tov_loop_count += 1
+            print(f"Mazel Tov loop {self.mazel_tov_loop_count}/{MAZEL_TOV_LOOPS} completed.")
+            if self.mazel_tov_loop_count >= MAZEL_TOV_LOOPS:
+                if self.mazel_tov_movie.state() == QMovie.MovieState.Running:
+                    self.mazel_tov_movie.stop()
+                # Disconnect to prevent multiple calls if stop() is slow
+                try:
+                     self.mazel_tov_movie.frameChanged.disconnect(self._count_mazel_tov_loops)
+                except TypeError:
+                    pass # Already disconnected or never connected
+                self._show_success_buttons()
+
     def _show_success_buttons(self):
+        """Slot called by loop counter or timer (if no GIF)."""
+        # Check if the success screen is still the active screen
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
             print("Showing success buttons.")
-            # Ensure movie stopped if finished signal fired
-            if self.mazel_tov_movie and self.mazel_tov_movie.state() == QMovie.MovieState.Running:
-                 self.mazel_tov_movie.stop()
             self.home_success_button.show()
             self.view_results_button.show()
         else:
             print("Success screen no longer active. Buttons not shown.")
+
 
     def start_data_fetch(self):
         if self.selected_date_range is None:
