@@ -91,3 +91,6 @@ def generate_excel_dashboard(df, output_path="violations_dashboard.xlsx"):
     ws_dash.add_chart(line, "E45")
 
     wb.save(output_path)
+
+def generate_excel(df, output_path='violations.xlsx'):
+    return generate_excel_dashboard(df, output_path)
