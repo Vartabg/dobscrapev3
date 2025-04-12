@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DOB Violations Scraper</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 DOB Violations Scraper</h1>
+        <form action="/run" method="POST">
+            <select name="date_range" required>
+                <option value="">Select Date Range</option>
+                <option>Last 30 Days</option>
+                <option>Last 3 Months</option>
+                <option>Last 6 Months</option>
+                <option>Past Year</option>
+                <option>Past 2 Years</option>
+                <option>All Since 2020</option>
+            </select>
+            <button type="submit">Start</button>
+        </form>
+    </div>
+</body>
+</html>
