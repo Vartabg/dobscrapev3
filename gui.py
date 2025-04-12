@@ -1,3 +1,4 @@
+# FINAL PATCHED VERSION — Start button visibility fix applied
 import sys
 import asyncio
 import os
