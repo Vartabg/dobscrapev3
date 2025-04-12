@@ -1,13 +1,3 @@
-# Gemini’s complete UX-aligned gui.py (see above full version). Content has been verified.
-
-# Run this with assets/ folder and backend scripts in place.Okay, Confirmed. I will now build the new gui.py based strictly on the Mr. 4 in a Row — Original UX Design Brief (FOR GEMINI) you provided.
-
-This involves a complete rewrite of the GUI structure to match the minimalist, centered, and circular/rounded aesthetic specified. The backend logic (WorkerThread, view_results) will be integrated into this new structure.
-
-Please stand by while I generate the code. This will take a few moments as it involves restructuring layouts, styles, and widget interactions significantly.
-
-# --- START OF FILE gui.py ---
-
 import sys
 import os
 import subprocess # Needed for macOS/Linux open fallback
@@ -193,7 +183,7 @@ HOME_SUCCESS_BUTTON_STYLE = f"""
 
 OYVEY_BUTTON_STYLE = f"""
     QPushButton {{
-        background-color: {UX_BLUE};
+        background-color: {UX_BLUE}; /* Changed to blue as per brief visuals */
         border: none;
         color: {UX_WHITE};
         border-radius: 50px; /* Circle */
@@ -206,10 +196,10 @@ OYVEY_BUTTON_STYLE = f"""
         padding: 0px; /* No padding for emoji */
     }}
      QPushButton:hover {{
-        background-color: #0039A8;
+        background-color: #0039A8; /* Lighter Blue */
     }}
     QPushButton:pressed {{
-        background-color: #001F5C; 
+        background-color: #001F5C; /* Darker Blue */
     }}
 """
 
@@ -283,7 +273,6 @@ class Mr4InARowApp(QMainWindow):
         self._create_oyvey_screen()
 
         # --- Add Screens to Stacked Widget ---
-        # Order matters for index if using index-based switching, but names are safer
         self.stacked_widget.addWidget(self.start_screen_widget)
         self.stacked_widget.addWidget(self.date_screen_widget)
         self.stacked_widget.addWidget(self.loading_screen_widget)
@@ -369,13 +358,7 @@ class Mr4InARowApp(QMainWindow):
         layout = QVBoxLayout(self.loading_screen_widget)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Optional: Fetching text
-        fetching_label = QLabel("Fetching...")
-        fetching_label.setFont(QFont(FONT_FAMILY, 16))
-        fetching_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        fetching_label.setStyleSheet(f"color: {UX_BLACK}; margin-bottom: 20px;")
-
-        # GIF Label
+        # GIF Label should be primary focus
         self.loading_gif_label = QLabel()
         self.loading_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         flag_path = os.path.join(self.assets_dir, "israel_flag.gif")
@@ -388,6 +371,13 @@ class Mr4InARowApp(QMainWindow):
             print(f"Warning: Loading GIF not found at {flag_path}")
             self.loading_gif_label.setText("🇮🇱") # Fallback
             self.loading_gif_label.setFont(QFont(FONT_FAMILY, 100)) # Large fallback
+        
+        # Optional: Fetching text (centered below GIF)
+        fetching_label = QLabel("Fetching...")
+        fetching_label.setFont(QFont(FONT_FAMILY, 16))
+        fetching_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        fetching_label.setStyleSheet(f"color: {UX_BLACK}; margin-top: 20px;") # Margin above text
+
 
         layout.addWidget(self.loading_gif_label)
         layout.addWidget(fetching_label) # Add text below GIF
@@ -406,13 +396,18 @@ class Mr4InARowApp(QMainWindow):
         if os.path.exists(mazel_tov_path):
             self.mazel_tov_movie = QMovie(mazel_tov_path)
             # Let movie determine size or scale if needed, brief doesn't specify size here
-            # self.mazel_tov_movie.setScaledSize(QSize(400, 300)) # Example size
+            # self.mazel_tov_movie.setScaledSize(QSize(400, 300)) # Example size if needed
             self.success_gif_label.setMovie(self.mazel_tov_movie)
-            self.mazel_tov_movie.finished.connect(self._show_success_buttons) # Connect signal
+            # Disconnect first to be safe, then connect signal
+            try: self.mazel_tov_movie.finished.disconnect(self._show_success_buttons) 
+            except TypeError: pass
+            self.mazel_tov_movie.finished.connect(self._show_success_buttons) 
         else:
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉") # Fallback
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
+            # If no GIF, show buttons immediately? Or maybe after a short delay.
+            # QTimer.singleShot(100, self._show_success_buttons) # Example delay
 
         layout.addWidget(self.success_gif_label)
 
@@ -494,7 +489,7 @@ class Mr4InARowApp(QMainWindow):
         close_oyvey_button.setStyleSheet(OYVEY_BUTTON_STYLE)
         close_oyvey_button.setCursor(Qt.CursorShape.PointingHandCursor)
         close_oyvey_button.setToolTip("Close Application")
-        close_oyvey_button.clicked.connect(self.close)
+        close_oyvey_button.clicked.connect(self.close) # Connect to QMainWindow.close
 
         oyvey_buttons_layout.addWidget(home_oyvey_button)
         oyvey_buttons_layout.addWidget(close_oyvey_button)
@@ -506,6 +501,10 @@ class Mr4InARowApp(QMainWindow):
     def show_screen(self, screen_widget):
         """Switches to the specified screen widget and handles animations."""
         current_widget = self.stacked_widget.currentWidget()
+        target_index = self.stacked_widget.indexOf(screen_widget)
+        
+        if current_widget == screen_widget:
+            return # Already on the target screen
 
         # Stop animations on the outgoing screen
         if current_widget == self.loading_screen_widget and hasattr(self, 'flag_movie'):
@@ -515,23 +514,43 @@ class Mr4InARowApp(QMainWindow):
         elif current_widget == self.oyvey_screen_widget and hasattr(self, 'oyvey_movie'):
              self.oyvey_movie.stop()
 
+        # --- Add Transition Animation (Optional Fade) ---
+        # You might need to adjust duration/curve
+        self.fade_animation = QPropertyAnimation(current_widget, b"windowOpacity")
+        self.fade_animation.setDuration(150) # Short fade out
+        self.fade_animation.setStartValue(1.0)
+        self.fade_animation.setEndValue(0.0)
+        self.fade_animation.finished.connect(lambda: self._finish_transition(screen_widget))
+        self.fade_animation.start()
+        # --- End Transition ---
+
+        # Note: Without animation, just use: self._finish_transition(screen_widget)
+
+    def _finish_transition(self, screen_widget):
+        """Completes the screen switch after fade-out."""
+        # Ensure previous widget is fully transparent before switching if animating
+        current_widget = self.stacked_widget.currentWidget()
+        current_widget.setWindowOpacity(1.0) # Reset opacity after hiding
+
         # Set the new screen
         self.stacked_widget.setCurrentWidget(screen_widget)
+        screen_widget.setWindowOpacity(1.0) # Ensure new screen is opaque
 
         # Start animations on the incoming screen
         if screen_widget == self.loading_screen_widget and hasattr(self, 'flag_movie'):
             self.flag_movie.start()
-        elif screen_widget == self.success_screen_widget and hasattr(self, 'mazel_tov_movie'):
-             # Reset and start Mazel Tov animation
-             self.mazel_tov_movie.setLoopCount(3)
-             # Ensure buttons are hidden initially when screen shows
-             self.home_success_button.hide()
-             self.view_results_button.hide()
-             self.mazel_tov_movie.start()
+        elif screen_widget == self.success_screen_widget:
+             if hasattr(self, 'mazel_tov_movie'):
+                 self.mazel_tov_movie.setLoopCount(3)
+                 self.home_success_button.hide() # Ensure hidden
+                 self.view_results_button.hide() # Ensure hidden
+                 self.mazel_tov_movie.start()
+             else:
+                 # If no movie, show buttons immediately
+                 self._show_success_buttons() 
         elif screen_widget == self.oyvey_screen_widget and hasattr(self, 'oyvey_movie'):
-             self.oyvey_movie.start() # Loop indefinitely by default
+             self.oyvey_movie.start() 
         elif screen_widget == self.date_screen_widget:
-            # Reset date screen state when shown
             self._reset_date_screen()
 
 
@@ -545,7 +564,6 @@ class Mr4InARowApp(QMainWindow):
 
     def _go_back_to_start(self):
         """Handles going back to the start screen, potentially resetting state."""
-        # Could add more complex state reset here if needed in future
         self.show_screen(self.start_screen_widget)
         
     def _on_date_button_selected(self, clicked_button, date_range):
@@ -557,14 +575,14 @@ class Mr4InARowApp(QMainWindow):
             if button != clicked_button:
                 button.setChecked(False)
         
-        if is_checked:
+        # If the clicked button is now checked, store range and show action buttons
+        if clicked_button.isChecked(): # Re-check state after toggling others
             self.selected_date_range = date_range
             print(f"Date range selected: {date_range[0].strftime('%Y-%m-%d')} to {date_range[1].strftime('%Y-%m-%d')}")
-            # Show action buttons
             self.fetch_button.show()
             self.back_button.show()
         else:
-            # If user clicks again to uncheck (shouldn't happen if group logic used, but safe)
+            # If the clicked button ended up unchecked (e.g., user clicked twice)
             self.selected_date_range = None
             print("Date range deselected.")
             self.fetch_button.hide()
@@ -580,7 +598,6 @@ class Mr4InARowApp(QMainWindow):
         """Starts the background worker thread."""
         if self.selected_date_range is None:
             print("Error: No date range selected.")
-            # Maybe show a user message? For now, just return.
             return
             
         self.show_screen(self.loading_screen_widget)
@@ -624,7 +641,8 @@ class Mr4InARowApp(QMainWindow):
     # --- Utility Methods ---
     def get_date_range(self, days):
         """Generate a date range tuple (start_date, end_date)"""
-        end_date = datetime.now()
+        # Ensure end_date includes the whole current day if desired, or use as-is
+        end_date = datetime.now() 
         start_date = end_date - timedelta(days=days)
         return (start_date, end_date)
 
