@@ -32,7 +32,12 @@ async def fetch_violations(session, offset=0, start_date="2020-01-01"):
     try:
         async with session.get(NYC_OPEN_DATA_API, params=params) as response:
             if response.status == 200:
-                return await response.json()
+                data = await response.json()
+                if isinstance(data, list):
+                    return data
+                else:
+                    print(f"⚠️ Unexpected response format: {data}")
+                    return []
             else:
                 print(f"API returned status {response.status}")
                 return []
