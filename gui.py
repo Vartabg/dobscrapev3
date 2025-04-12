@@ -23,7 +23,6 @@ except ImportError as e:
     BACKEND_AVAILABLE = False
     def scrape_violations(start_date):
         print("Warning: Using dummy scrape_violations.")
-        # Simulate finding nothing to easily test Oy Vey flow
         return pd.DataFrame()
     def generate_excel(df, output_path="violations.xlsx"):
         print(f"Warning: Using dummy generate_excel. Would save to {output_path}.")
@@ -39,7 +38,7 @@ UX_RED = "#e74c3c"
 UX_WHITE = "#ffffff"
 UX_BLACK = "#000000"
 UX_HOVER_GRAY = "#F8F8F8"
-FONT_FAMILY = "Arial, Segoe UI" # Use Arial or Segoe UI
+FONT_FAMILY = "Arial, Segoe UI"
 
 DEFAULT_EXCEL_PATH = "violations.xlsx"
 
@@ -51,7 +50,7 @@ START_BUTTON_STYLE = f"""
         background-color: {UX_WHITE};
         border: 3px solid {UX_BLUE};
         color: {UX_BLUE};
-        border-radius: 100px; /* half of width/height */
+        border-radius: 100px;
         font-size: 24pt;
         font-family: {FONT_FAMILY};
         font-weight: bold;
@@ -61,26 +60,26 @@ START_BUTTON_STYLE = f"""
         max-height: 200px;
     }}
     QPushButton:hover {{
-        background-color: {UX_HOVER_GRAY}; /* Subtle hover */
+        background-color: {UX_HOVER_GRAY};
     }}
     QPushButton:pressed {{
-        background-color: #E0E0E0; /* Slightly darker press */
+        background-color: #E0E0E0;
     }}
 """
 
 DATE_BUTTON_STYLE = f"""
     QPushButton {{
         background-color: {UX_WHITE};
-        border: 1px solid {UX_BLACK}; /* Subtle border */
+        border: 1px solid {UX_BLACK};
         color: {UX_BLACK};
         border-radius: 25px;
-        font-size: 14pt; /* Readable size */
+        font-size: 14pt;
         font-family: {FONT_FAMILY};
         min-width: 300px;
         max-width: 300px;
         min-height: 50px;
         max-height: 50px;
-        margin: 5px 0; /* Vertical margin */
+        margin: 5px 0;
     }}
     QPushButton:hover {{
         background-color: {UX_HOVER_GRAY};
@@ -104,16 +103,16 @@ FETCH_BUTTON_STYLE = f"""
         font-size: 14pt;
         font-family: {FONT_FAMILY};
         font-weight: bold;
-        min-width: 150px; /* Smaller than date buttons */
+        min-width: 150px;
         max-width: 150px;
         min-height: 50px;
         max-height: 50px;
     }}
     QPushButton:hover {{
-        background-color: #27ae60; /* Darker Green */
+        background-color: #27ae60;
     }}
     QPushButton:pressed {{
-        background-color: #1e8449; /* Even Darker Green */
+        background-color: #1e8449;
     }}
 """
 
@@ -132,10 +131,10 @@ BACK_BUTTON_STYLE = f"""
         max-height: 50px;
     }}
     QPushButton:hover {{
-        background-color: #0039A8; /* Slightly Lighter Blue */
+        background-color: #0039A8;
     }}
     QPushButton:pressed {{
-        background-color: #001F5C; /* Darker Blue */
+        background-color: #001F5C;
     }}
 """
 
@@ -144,15 +143,15 @@ VIEW_RESULTS_BUTTON_STYLE = f"""
         background-color: {UX_GREEN};
         border: none;
         color: {UX_WHITE};
-        border-radius: 100px; /* Circle */
-        font-size: 18pt; /* Adjust as needed */
+        border-radius: 100px;
+        font-size: 18pt;
         font-family: {FONT_FAMILY};
         font-weight: bold;
         min-width: 200px;
         max-width: 200px;
         min-height: 200px;
         max-height: 200px;
-        padding: 10px; /* Add padding if text is long */
+        padding: 10px;
     }}
      QPushButton:hover {{
         background-color: #27ae60;
@@ -167,7 +166,7 @@ HOME_SUCCESS_BUTTON_STYLE = f"""
         background-color: {UX_BLUE};
         border: none;
         color: {UX_WHITE};
-        border-radius: 50px; /* Circle */
+        border-radius: 50px;
         font-size: 14pt;
         font-family: {FONT_FAMILY};
         font-weight: bold;
@@ -186,30 +185,28 @@ HOME_SUCCESS_BUTTON_STYLE = f"""
 
 OYVEY_BUTTON_STYLE = f"""
     QPushButton {{
-        background-color: {UX_BLUE}; /* Changed to blue as per brief visuals */
+        background-color: {UX_BLUE};
         border: none;
         color: {UX_WHITE};
-        border-radius: 50px; /* Circle */
-        font-size: 28pt; /* Larger for Emoji */
+        border-radius: 50px;
+        font-size: 28pt;
         font-family: {FONT_FAMILY};
         min-width: 100px;
         max-width: 100px;
         min-height: 100px;
         max-height: 100px;
-        padding: 0px; /* No padding for emoji */
+        padding: 0px;
     }}
      QPushButton:hover {{
-        background-color: #0039A8; /* Lighter Blue */
+        background-color: #0039A8;
     }}
     QPushButton:pressed {{
-        background-color: #001F5C; /* Darker Blue */
+        background-color: #001F5C;
     }}
 """
 
-
 class WorkerThread(QThread):
-    """Worker thread for running data fetching and generation asynchronously"""
-    finished = pyqtSignal(bool)  # Signal emits True if results were found and processed, False otherwise
+    finished = pyqtSignal(bool)
 
     def __init__(self, date_range):
         super().__init__()
@@ -221,7 +218,7 @@ class WorkerThread(QThread):
         if not BACKEND_AVAILABLE:
             print("Backend not available. Simulating data fetch...")
             self.sleep(3)
-            results_found = False # Simulate no results for testing
+            results_found = False
             self.finished.emit(results_found)
             return
 
@@ -246,28 +243,23 @@ class WorkerThread(QThread):
             traceback.print_exc()
             self.finished.emit(False)
 
-
 class Mr4InARowApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # --- Window Setup based on Brief ---
-        self.setWindowTitle("") # No window title
-        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT) # Fixed size
+        self.setWindowTitle("")
+        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.setStyleSheet(MAIN_WINDOW_STYLE)
 
-        # Determine base path for assets and excel file
         self.base_path = os.path.dirname(os.path.abspath(__file__))
         self.assets_dir = os.path.join(self.base_path, "assets")
         self.excel_path = os.path.join(self.base_path, DEFAULT_EXCEL_PATH)
 
         self.selected_date_range = None
 
-        # --- Central Stacked Widget for Screens ---
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
-        # --- Screen Objects (initialize attributes) ---
         self.start_screen_widget = None
         self.date_screen_widget = None
         self.loading_screen_widget = None
@@ -277,28 +269,22 @@ class Mr4InARowApp(QMainWindow):
         self.mazel_tov_movie = None
         self.oyvey_movie = None
 
-        # --- Create Screens ---
         self._create_start_screen()
         self._create_date_screen()
         self._create_loading_screen()
         self._create_success_screen()
         self._create_oyvey_screen()
 
-        # --- Add Screens to Stacked Widget ---
         if self.start_screen_widget: self.stacked_widget.addWidget(self.start_screen_widget)
         if self.date_screen_widget: self.stacked_widget.addWidget(self.date_screen_widget)
         if self.loading_screen_widget: self.stacked_widget.addWidget(self.loading_screen_widget)
         if self.success_screen_widget: self.stacked_widget.addWidget(self.success_screen_widget)
         if self.oyvey_screen_widget: self.stacked_widget.addWidget(self.oyvey_screen_widget)
 
-        # --- Show Initial Screen ---
         if self.start_screen_widget:
              self.show_screen(self.start_screen_widget)
         else:
              print("Error: Start screen widget not created.")
-
-
-    # --- Screen Creation Methods ---
 
     def _create_start_screen(self):
         self.start_screen_widget = QWidget()
@@ -406,6 +392,7 @@ class Mr4InARowApp(QMainWindow):
         if os.path.exists(mazel_tov_path):
             self.mazel_tov_movie = QMovie(mazel_tov_path)
             self.success_gif_label.setMovie(self.mazel_tov_movie)
+            # Connect the standard 'finished' signal. It emits when loops are done.
             try: self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
             except TypeError: pass
             self.mazel_tov_movie.finished.connect(self._show_success_buttons)
@@ -498,8 +485,6 @@ class Mr4InARowApp(QMainWindow):
 
         layout.addLayout(oyvey_buttons_layout)
 
-    # --- Action and Navigation Methods ---
-
     def show_screen(self, screen_widget):
         """Switches to the specified screen widget and handles animations."""
         if not screen_widget:
@@ -512,6 +497,7 @@ class Mr4InARowApp(QMainWindow):
             return
 
         if current_widget:
+            # Stop animations only if the movie object exists
             if current_widget == self.loading_screen_widget and self.flag_movie:
                 self.flag_movie.stop()
             elif current_widget == self.success_screen_widget and self.mazel_tov_movie:
@@ -519,13 +505,16 @@ class Mr4InARowApp(QMainWindow):
             elif current_widget == self.oyvey_screen_widget and self.oyvey_movie:
                  self.oyvey_movie.stop()
 
+            # Start fade-out animation
             self.fade_out_animation = QPropertyAnimation(current_widget, b"windowOpacity")
             self.fade_out_animation.setDuration(150)
             self.fade_out_animation.setStartValue(current_widget.windowOpacity())
             self.fade_out_animation.setEndValue(0.0)
-            self.fade_out_animation.finished.connect(lambda: self._finish_transition(screen_widget))
+            # Ensure lambda captures the correct screen_widget for the connection
+            self.fade_out_animation.finished.connect(lambda sw=screen_widget: self._finish_transition(sw))
             self.fade_out_animation.start()
         else:
+            # If no current widget (initial launch), skip fade-out
             self._finish_transition(screen_widget)
 
 
@@ -533,28 +522,34 @@ class Mr4InARowApp(QMainWindow):
         """Completes the screen switch, potentially fading in."""
         current_widget = self.stacked_widget.currentWidget()
         if current_widget:
-             current_widget.setWindowOpacity(1.0) # Reset opacity just in case
+             # Reset opacity of the widget that just faded out
+             current_widget.setWindowOpacity(1.0)
 
+        # Set the new screen widget but keep it transparent initially for fade-in
         screen_widget.setWindowOpacity(0.0)
         self.stacked_widget.setCurrentWidget(screen_widget)
 
+        # Start animations *before* fade-in for movies (Check if movie objects exist)
         if screen_widget == self.loading_screen_widget and self.flag_movie:
             self.flag_movie.start()
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
-                 # *** USE setLoops() INSTEAD OF setLoopCount() ***
-                 self.mazel_tov_movie.frameChanged.connect(self._check_mazel_tov_loops)
-        self.mazel_tov_loop_count = 0 
-                 # ***********************************************
+                 # *** USE setLoops() *** Corrected method name
+                 self.mazel_tov_movie.setLoops(3)
+                 # Ensure buttons are hidden when screen starts
                  self.home_success_button.hide()
                  self.view_results_button.hide()
+                 # Start the animation
                  self.mazel_tov_movie.start()
-             # Buttons shown via timer or finished signal
+             # If no movie, buttons shown via timer in _create_success_screen
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
+             # Oy Vey movie loops infinitely by default unless loops set here
+             # self.oyvey_movie.setLoops(QMovie.Infinite) # Optional: be explicit
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
 
+        # Fade in the new widget
         self.fade_in_animation = QPropertyAnimation(screen_widget, b"windowOpacity")
         self.fade_in_animation.setDuration(150)
         self.fade_in_animation.setStartValue(0.0)
@@ -563,7 +558,6 @@ class Mr4InARowApp(QMainWindow):
 
 
     def _reset_date_screen(self):
-        """Resets date button selection and hides action buttons."""
         self.selected_date_range = None
         if hasattr(self, 'date_buttons_group'):
             for button in self.date_buttons_group:
@@ -572,12 +566,10 @@ class Mr4InARowApp(QMainWindow):
         if hasattr(self, 'back_button'): self.back_button.hide()
 
     def _go_back_to_start(self):
-        """Handles going back to the start screen."""
         if self.start_screen_widget:
              self.show_screen(self.start_screen_widget)
 
     def _on_date_button_selected(self, clicked_button, date_range):
-        """Handles logic when a date range button is clicked."""
         for button in self.date_buttons_group:
             if button != clicked_button and button.isChecked():
                 button.setChecked(False)
@@ -594,17 +586,17 @@ class Mr4InARowApp(QMainWindow):
             self.back_button.hide()
 
     def _show_success_buttons(self):
-        """Called when the Mazel Tov animation finishes or if no GIF."""
+        """Slot connected to mazel_tov_movie.finished signal."""
+        # Check if the success screen is still the active screen
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
-            print("Showing success buttons.")
+            print("Mazel Tov animation finished. Showing buttons.")
             self.home_success_button.show()
             self.view_results_button.show()
         else:
-            print("Success screen no longer active. Buttons not shown.")
-
+            # This can happen if user navigates away before animation finishes
+            print("Mazel Tov finished, but success screen is no longer active. Buttons not shown.")
 
     def start_data_fetch(self):
-        """Starts the background worker thread."""
         if self.selected_date_range is None:
             print("Error: No date range selected.")
             return
@@ -620,7 +612,6 @@ class Mr4InARowApp(QMainWindow):
         self.worker.start()
 
     def handle_fetch_completed(self, results_found):
-        """Handles the result from the worker thread."""
         if results_found:
             print("Fetch completed: Results found.")
             if self.success_screen_widget:
@@ -634,21 +625,7 @@ class Mr4InARowApp(QMainWindow):
             else:
                 print("Error: Oy Vey screen not available.")
 
-
-    
-    def _check_mazel_tov_loops(self, frame):
-        if not hasattr(self, 'mazel_tov_movie'):
-            return
-        if self.mazel_tov_movie.currentFrameNumber() == self.mazel_tov_movie.frameCount() - 1:
-            self.mazel_tov_loop_count += 1
-            print(f"Mazel Tov loop {self.mazel_tov_loop_count}/3")
-            if self.mazel_tov_loop_count >= 3:
-                self.mazel_tov_movie.stop()
-                self._show_success_buttons()
-
-
     def view_results(self):
-        """Opens the generated Excel file."""
         print(f"Attempting to open results file: {self.excel_path}")
         if os.path.exists(self.excel_path):
             try:
@@ -669,21 +646,16 @@ class Mr4InARowApp(QMainWindow):
         else:
             print(f"Error: Could not find results file at {self.excel_path}")
 
-
-    # --- Utility Methods ---
     def get_date_range(self, days):
-        """Generate a date range tuple (start_date, end_date)"""
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         return (start_date, end_date)
-
 
 def main():
     app = QApplication(sys.argv)
     window = Mr4InARowApp()
     window.show()
     sys.exit(app.exec())
-
 
 if __name__ == "__main__":
     main()
