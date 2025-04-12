@@ -543,7 +543,8 @@ class Mr4InARowApp(QMainWindow):
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
                  # *** USE setLoops() INSTEAD OF setLoopCount() ***
-                 self.mazel_tov_movie.setLoopCount(3) 
+                 self.mazel_tov_movie.frameChanged.connect(self._check_mazel_tov_loops)
+        self.mazel_tov_loop_count = 0 
                  # ***********************************************
                  self.home_success_button.hide()
                  self.view_results_button.hide()
@@ -634,7 +635,18 @@ class Mr4InARowApp(QMainWindow):
                 print("Error: Oy Vey screen not available.")
 
 
-    def view_results(self):
+    
+    def _check_mazel_tov_loops(self, frame):
+        if not hasattr(self, 'mazel_tov_movie'):
+            return
+        if self.mazel_tov_movie.currentFrameNumber() == self.mazel_tov_movie.frameCount() - 1:
+            self.mazel_tov_loop_count += 1
+            print(f"Mazel Tov loop {self.mazel_tov_loop_count}/3")
+            if self.mazel_tov_loop_count >= 3:
+                self.mazel_tov_movie.stop()
+                self._show_success_buttons()
+    
+def view_results(self):
         """Opens the generated Excel file."""
         print(f"Attempting to open results file: {self.excel_path}")
         if os.path.exists(self.excel_path):
