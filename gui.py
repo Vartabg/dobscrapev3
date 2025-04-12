@@ -127,11 +127,7 @@ class Mr4InARowApp(QMainWindow):
         start_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Add title
-        title_label = QLabel("Mr. 4 in a Row")
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
-        title_label.setStyleSheet(f"color: {ISRAEL_BLUE};")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        start_layout.addWidget(title_label)
+        
         
         # Add some spacing
         start_layout.addSpacing(20)
