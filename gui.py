@@ -185,7 +185,8 @@ class DOBViolationsApp(QMainWindow):
         asyncio.set_event_loop(loop)
         try:
             violations = loop.run_until_complete(scraper_async.fetch_violations(start_date))
-            if not violations:
+            if not violations or not isinstance(violations, list):
+                print(f"Unexpected scraper output: {violations}")
                 self.show_no_results()
             else:
                 excel_generator.generate_excel(violations)
