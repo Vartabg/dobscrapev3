@@ -535,7 +535,9 @@ class Mr4InARowApp(QMainWindow):
                  # *********************************************
                  self.home_success_button.hide()
                  self.view_results_button.hide()
-                 self.mazel_tov_movie.start()
+                 self.mazel_tov_loop_count = 0
+        self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
+        self.mazel_tov_movie.start()
              # Buttons shown via timer or finished signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
              # Set loops to infinite (-1) for Oy Vey, or remove setProperty to use default
