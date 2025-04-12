@@ -37,6 +37,7 @@ class DOBViolationsApp(QMainWindow):
         
         # Initialize UI
         self.init_ui()
+        print("init_ui called and layout populated")
 
     def init_ui(self):
         """Initialize the starting UI with the circular start button"""
