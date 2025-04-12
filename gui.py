@@ -99,7 +99,7 @@ class Mr4InARowApp(QMainWindow):
         super().__init__()
         
         # Set up the main window
-        self.setWindowTitle("Mr. 4 in a Row")
+        self.setWindowTitle("")
         self.setMinimumSize(600, 500)
         self.setStyleSheet(f"background-color: {ISRAEL_WHITE};")
         
