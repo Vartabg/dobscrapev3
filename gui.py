@@ -395,7 +395,9 @@ class Mr4InARowApp(QMainWindow):
             # Connect the standard 'finished' signal. It emits when loops are done.
             try: self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
             except TypeError: pass
-            self.mazel_tov_movie.finished.connect(self._show_success_buttons)
+            self.mazel_tov_loop_count = 0
+            self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
+self.mazel_tov_movie.finished.connect(self._show_success_buttons)
         else:
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
@@ -535,12 +537,14 @@ class Mr4InARowApp(QMainWindow):
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
                  # *** USE setLoops() *** Corrected method name
-                 self.mazel_tov_movie.setLoops(3)
+                 
                  # Ensure buttons are hidden when screen starts
                  self.home_success_button.hide()
                  self.view_results_button.hide()
                  # Start the animation
-                 self.mazel_tov_movie.start()
+                 self.mazel_tov_loop_count = 0
+            self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
+            self.mazel_tov_movie.start()
              # If no movie, buttons shown via timer in _create_success_screen
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
              # Oy Vey movie loops infinitely by default unless loops set here
