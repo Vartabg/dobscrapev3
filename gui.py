@@ -286,6 +286,8 @@ class Mr4InARowApp(QMainWindow):
         else:
              print("Error: Start screen widget not created.")
 
+    # --- Screen Creation Methods (Indentation Checked) ---
+
     def _create_start_screen(self):
         self.start_screen_widget = QWidget()
         layout = QVBoxLayout(self.start_screen_widget)
@@ -389,22 +391,26 @@ class Mr4InARowApp(QMainWindow):
         self.success_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         mazel_tov_path = os.path.join(self.assets_dir, "mazel_tov.gif")
 
+        # Corrected Indentation Here
         if os.path.exists(mazel_tov_path):
             self.mazel_tov_movie = QMovie(mazel_tov_path)
             self.success_gif_label.setMovie(self.mazel_tov_movie)
-            # Connect the standard 'finished' signal. It emits when loops are done.
-            try: self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
-            except TypeError: pass
-            self.mazel_tov_loop_count = 0
-            self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
-self.mazel_tov_movie.finished.connect(self._show_success_buttons)
+            # Connect the standard 'finished' signal for when loops complete
+            try:
+                self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
+            except TypeError:
+                pass # Signal not connected
+            self.mazel_tov_movie.finished.connect(self._show_success_buttons)
         else:
+            # This else block is now correctly indented
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
             self.mazel_tov_movie = None
+            # If no movie, show buttons after a small delay for screen transition
             QTimer.singleShot(200, self._show_success_buttons)
 
+        # Remainder of the function is correctly indented
         layout.addWidget(self.success_gif_label)
 
         self.success_buttons_layout = QHBoxLayout()
@@ -427,6 +433,7 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
         self.success_buttons_layout.addWidget(self.view_results_button)
 
         layout.addLayout(self.success_buttons_layout)
+
 
     def _create_oyvey_screen(self):
         self.oyvey_screen_widget = QWidget()
@@ -487,8 +494,9 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
 
         layout.addLayout(oyvey_buttons_layout)
 
+    # --- Action and Navigation Methods ---
+
     def show_screen(self, screen_widget):
-        """Switches to the specified screen widget and handles animations."""
         if not screen_widget:
             print("Error: Attempted to show a non-existent screen.")
             return
@@ -499,7 +507,6 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
             return
 
         if current_widget:
-            # Stop animations only if the movie object exists
             if current_widget == self.loading_screen_widget and self.flag_movie:
                 self.flag_movie.stop()
             elif current_widget == self.success_screen_widget and self.mazel_tov_movie:
@@ -507,59 +514,43 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
             elif current_widget == self.oyvey_screen_widget and self.oyvey_movie:
                  self.oyvey_movie.stop()
 
-            # Start fade-out animation
             self.fade_out_animation = QPropertyAnimation(current_widget, b"windowOpacity")
             self.fade_out_animation.setDuration(150)
             self.fade_out_animation.setStartValue(current_widget.windowOpacity())
             self.fade_out_animation.setEndValue(0.0)
-            # Ensure lambda captures the correct screen_widget for the connection
             self.fade_out_animation.finished.connect(lambda sw=screen_widget: self._finish_transition(sw))
             self.fade_out_animation.start()
         else:
-            # If no current widget (initial launch), skip fade-out
             self._finish_transition(screen_widget)
 
-
     def _finish_transition(self, screen_widget):
-        """Completes the screen switch, potentially fading in."""
         current_widget = self.stacked_widget.currentWidget()
         if current_widget:
-             # Reset opacity of the widget that just faded out
              current_widget.setWindowOpacity(1.0)
 
-        # Set the new screen widget but keep it transparent initially for fade-in
         screen_widget.setWindowOpacity(0.0)
         self.stacked_widget.setCurrentWidget(screen_widget)
 
-        # Start animations *before* fade-in for movies (Check if movie objects exist)
         if screen_widget == self.loading_screen_widget and self.flag_movie:
             self.flag_movie.start()
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
-                 # *** USE setLoops() *** Corrected method name
-                 
-                 # Ensure buttons are hidden when screen starts
+                 # Use setProperty as the final attempt for loop control
+                 self.mazel_tov_movie.setProperty("loopCount", 3)
                  self.home_success_button.hide()
                  self.view_results_button.hide()
-                 # Start the animation
-                 self.mazel_tov_loop_count = 0
-            self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
-            self.mazel_tov_movie.start()
-             # If no movie, buttons shown via timer in _create_success_screen
+                 self.mazel_tov_movie.start()
+             # Buttons shown via timer or finished signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
-             # Oy Vey movie loops infinitely by default unless loops set here
-             # self.oyvey_movie.setLoops(QMovie.Infinite) # Optional: be explicit
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
 
-        # Fade in the new widget
         self.fade_in_animation = QPropertyAnimation(screen_widget, b"windowOpacity")
         self.fade_in_animation.setDuration(150)
         self.fade_in_animation.setStartValue(0.0)
         self.fade_in_animation.setEndValue(1.0)
         self.fade_in_animation.start()
-
 
     def _reset_date_screen(self):
         self.selected_date_range = None
@@ -590,28 +581,14 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
             self.back_button.hide()
 
     def _show_success_buttons(self):
-        """Slot connected to mazel_tov_movie.finished signal."""
-        # Check if the success screen is still the active screen
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
-            print("Mazel Tov animation finished. Showing buttons.")
+            print("Showing success buttons.")
             self.home_success_button.show()
             self.view_results_button.show()
         else:
-            # This can happen if user navigates away before animation finishes
-            print("Mazel Tov finished, but success screen is no longer active. Buttons not shown.")
+            print("Success screen no longer active. Buttons not shown.")
 
-    
-    def _count_mazel_tov_loops(self, frame_number):
-        if not self.mazel_tov_movie:
-            return
-        if self.mazel_tov_movie.currentFrameNumber() == self.mazel_tov_movie.frameCount() - 1:
-            self.mazel_tov_loop_count += 1
-            print(f"Mazel Tov loop {self.mazel_tov_loop_count}/3")
-            if self.mazel_tov_loop_count >= 3:
-                self.mazel_tov_movie.stop()
-                self._show_success_buttons()
-
-def start_data_fetch(self):
+    def start_data_fetch(self):
         if self.selected_date_range is None:
             print("Error: No date range selected.")
             return
