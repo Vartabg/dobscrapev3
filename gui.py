@@ -156,4 +156,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = DOBViolationsApp()
     window.show()
-    asyncio.get_event_loop().run_until_complete(app.exec())
+    sys.exit(app.exec())
