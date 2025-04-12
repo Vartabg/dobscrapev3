@@ -600,7 +600,18 @@ self.mazel_tov_movie.finished.connect(self._show_success_buttons)
             # This can happen if user navigates away before animation finishes
             print("Mazel Tov finished, but success screen is no longer active. Buttons not shown.")
 
-    def start_data_fetch(self):
+    
+    def _count_mazel_tov_loops(self, frame_number):
+        if not self.mazel_tov_movie:
+            return
+        if self.mazel_tov_movie.currentFrameNumber() == self.mazel_tov_movie.frameCount() - 1:
+            self.mazel_tov_loop_count += 1
+            print(f"Mazel Tov loop {self.mazel_tov_loop_count}/3")
+            if self.mazel_tov_loop_count >= 3:
+                self.mazel_tov_movie.stop()
+                self._show_success_buttons()
+
+def start_data_fetch(self):
         if self.selected_date_range is None:
             print("Error: No date range selected.")
             return
