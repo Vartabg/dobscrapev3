@@ -162,27 +162,7 @@ VIEW_RESULTS_BUTTON_STYLE = f"""
     }}
 """
 
-HOME_SUCCESS_BUTTON_STYLE = f"""
-    QPushButton {{
-        background-color: {UX_BLUE};
-        border: none;
-        color: {UX_WHITE};
-        border-radius: 50px;
-        font-size: 14pt;
-        font-family: {FONT_FAMILY};
-        font-weight: bold;
-        min-width: 100px;
-        max-width: 100px;
-        min-height: 100px;
-        max-height: 100px;
-    }}
-     QPushButton:hover {{
-        background-color: #0039A8;
-    }}
-    QPushButton:pressed {{
-        background-color: #001F5C;
-    }}
-"""
+# HOME_SUCCESS_BUTTON_STYLE is no longer needed
 
 OYVEY_BUTTON_STYLE = f"""
     QPushButton {{
@@ -219,7 +199,8 @@ class WorkerThread(QThread):
         if not BACKEND_AVAILABLE:
             print("Backend not available. Simulating data fetch...")
             self.sleep(3)
-            results_found = False
+            # Simulate success to test success screen flow
+            results_found = True
             self.finished.emit(results_found)
             return
 
@@ -269,7 +250,7 @@ class Mr4InARowApp(QMainWindow):
         self.flag_movie = None
         self.mazel_tov_movie = None
         self.oyvey_movie = None
-        self.mazel_tov_loop_count = 0 # Initialize loop counter
+        self.mazel_tov_loop_count = 0
 
         self._create_start_screen()
         self._create_date_screen()
@@ -387,7 +368,8 @@ class Mr4InARowApp(QMainWindow):
         self.success_screen_widget = QWidget()
         layout = QVBoxLayout(self.success_screen_widget)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(30)
+        # Adjust spacing if needed now that there's only one button below GIF
+        layout.setSpacing(30) 
 
         self.success_gif_label = QLabel()
         self.success_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -399,45 +381,33 @@ class Mr4InARowApp(QMainWindow):
             # Connect frameChanged for manual loop counting
             try:
                 self.mazel_tov_movie.frameChanged.disconnect(self._count_mazel_tov_loops)
-            except TypeError:
-                pass # Not connected
+            except TypeError: pass
             self.mazel_tov_movie.frameChanged.connect(self._count_mazel_tov_loops)
-            # Remove finished signal connection, as counter method handles showing buttons
-            # try:
-            #     self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
-            # except TypeError:
-            #     pass
         else:
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
             self.mazel_tov_movie = None
-            # Show buttons immediately if no GIF
+            # Show button immediately if no GIF
             QTimer.singleShot(100, self._show_success_buttons)
 
         layout.addWidget(self.success_gif_label)
 
-        self.success_buttons_layout = QHBoxLayout()
-        self.success_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.success_buttons_layout.setSpacing(40)
-
-        self.home_success_button = QPushButton("Home")
-        self.home_success_button.setStyleSheet(HOME_SUCCESS_BUTTON_STYLE)
-        self.home_success_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.home_success_button.clicked.connect(self._go_back_to_start)
-        self.home_success_button.hide()
-
+        # --- Create ONLY View Results button ---
         self.view_results_button = QPushButton("View\nResults")
         self.view_results_button.setStyleSheet(VIEW_RESULTS_BUTTON_STYLE)
         self.view_results_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.view_results_button.clicked.connect(self.view_results)
-        self.view_results_button.hide()
+        self.view_results_button.hide() # Initially hidden
 
-        self.success_buttons_layout.addWidget(self.home_success_button)
-        self.success_buttons_layout.addWidget(self.view_results_button)
+        # --- Add ONLY View Results button to layout ---
+        # No HBox needed for a single centered button
+        layout.addWidget(self.view_results_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        layout.addLayout(self.success_buttons_layout)
-
+        # --- Home Button is REMOVED ---
+        # self.home_success_button creation REMOVED
+        # self.success_buttons_layout REMOVED
+        # Adding home_success_button to layout REMOVED
 
     def _create_oyvey_screen(self):
         self.oyvey_screen_widget = QWidget()
@@ -541,12 +511,13 @@ class Mr4InARowApp(QMainWindow):
              if self.mazel_tov_movie:
                  # Reset loop counter and start animation
                  self.mazel_tov_loop_count = 0
-                 self.home_success_button.hide()
-                 self.view_results_button.hide()
+                 # Ensure the GIF label is visible when the screen starts
+                 self.success_gif_label.show() 
+                 # Ensure the button is hidden when the screen starts
+                 self.view_results_button.hide() 
                  self.mazel_tov_movie.start()
              # Buttons shown via timer or frameChanged signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
-             # Oy Vey movie loops infinitely by default
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
@@ -587,10 +558,9 @@ class Mr4InARowApp(QMainWindow):
 
     # Method to count loops for Mazel Tov GIF
     def _count_mazel_tov_loops(self, frame_number):
-        if not self.mazel_tov_movie: # Safety check
+        if not self.mazel_tov_movie:
             return
 
-        # Check if it's the last frame (frame numbers are 0-based)
         is_last_frame = (frame_number == self.mazel_tov_movie.frameCount() - 1)
 
         if is_last_frame:
@@ -599,22 +569,26 @@ class Mr4InARowApp(QMainWindow):
             if self.mazel_tov_loop_count >= MAZEL_TOV_LOOPS:
                 if self.mazel_tov_movie.state() == QMovie.MovieState.Running:
                     self.mazel_tov_movie.stop()
-                # Disconnect to prevent multiple calls if stop() is slow
                 try:
                      self.mazel_tov_movie.frameChanged.disconnect(self._count_mazel_tov_loops)
-                except TypeError:
-                    pass # Already disconnected or never connected
+                except TypeError: pass
                 self._show_success_buttons()
 
     def _show_success_buttons(self):
-        """Slot called by loop counter or timer (if no GIF)."""
-        # Check if the success screen is still the active screen
+        """Shows ONLY the View Results button and hides the GIF."""
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
-            print("Showing success buttons.")
-            self.home_success_button.show()
-            self.view_results_button.show()
+            print("Showing View Results button and hiding GIF.")
+            # Hide the GIF label
+            if hasattr(self, 'success_gif_label'):
+                self.success_gif_label.hide()
+            # Show only the View Results button
+            if hasattr(self, 'view_results_button'):
+                self.view_results_button.show()
+            # Ensure Home button remains hidden (it shouldn't exist, but defensive check)
+            # if hasattr(self, 'home_success_button'):
+            #    self.home_success_button.hide() 
         else:
-            print("Success screen no longer active. Buttons not shown.")
+            print("Success screen no longer active. Buttons/GIF state unchanged.")
 
 
     def start_data_fetch(self):
@@ -647,7 +621,9 @@ class Mr4InARowApp(QMainWindow):
                 print("Error: Oy Vey screen not available.")
 
     def view_results(self):
+        """Opens the generated Excel file and then CLOSES the application."""
         print(f"Attempting to open results file: {self.excel_path}")
+        opened = False
         if os.path.exists(self.excel_path):
             try:
                 if sys.platform == "win32":
@@ -657,6 +633,7 @@ class Mr4InARowApp(QMainWindow):
                 else:
                     subprocess.run(["xdg-open", self.excel_path], check=True)
                 print(f"Successfully launched application for: {self.excel_path}")
+                opened = True
             except FileNotFoundError:
                  print(f"Error: Could not find system command (open/xdg-open) to open the file.")
             except subprocess.CalledProcessError as e:
@@ -666,6 +643,10 @@ class Mr4InARowApp(QMainWindow):
                 traceback.print_exc()
         else:
             print(f"Error: Could not find results file at {self.excel_path}")
+
+        # Close the application AFTER attempting to open the file
+        print("Closing application after View Results click.")
+        self.close() # Close the QMainWindow
 
     def get_date_range(self, days):
         end_date = datetime.now()
