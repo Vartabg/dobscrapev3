@@ -285,13 +285,11 @@ class Mr4InARowApp(QMainWindow):
         self._create_oyvey_screen()
 
         # --- Add Screens to Stacked Widget ---
-        # Check if widgets were created before adding
         if self.start_screen_widget: self.stacked_widget.addWidget(self.start_screen_widget)
         if self.date_screen_widget: self.stacked_widget.addWidget(self.date_screen_widget)
         if self.loading_screen_widget: self.stacked_widget.addWidget(self.loading_screen_widget)
         if self.success_screen_widget: self.stacked_widget.addWidget(self.success_screen_widget)
         if self.oyvey_screen_widget: self.stacked_widget.addWidget(self.oyvey_screen_widget)
-
 
         # --- Show Initial Screen ---
         if self.start_screen_widget:
@@ -305,24 +303,23 @@ class Mr4InARowApp(QMainWindow):
     def _create_start_screen(self):
         self.start_screen_widget = QWidget()
         layout = QVBoxLayout(self.start_screen_widget)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter) # Center vertically
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         start_button = QPushButton("Start")
         start_button.setStyleSheet(START_BUTTON_STYLE)
         start_button.setCursor(Qt.CursorShape.PointingHandCursor)
         start_button.clicked.connect(lambda: self.show_screen(self.date_screen_widget))
 
-        layout.addWidget(start_button, alignment=Qt.AlignmentFlag.AlignCenter) # Center horizontally
+        layout.addWidget(start_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
     def _create_date_screen(self):
         self.date_screen_widget = QWidget()
         main_layout = QVBoxLayout(self.date_screen_widget)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.setSpacing(10) # Spacing between elements
+        main_layout.setSpacing(10)
 
-        # --- Date Buttons ---
-        self.date_buttons_group = [] # Store buttons for checking state
-        date_options_layout = QVBoxLayout() # Vertical stack
+        self.date_buttons_group = []
+        date_options_layout = QVBoxLayout()
         date_options_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         date_options_layout.setSpacing(5)
 
@@ -332,7 +329,7 @@ class Mr4InARowApp(QMainWindow):
             ("Last 6 Months", self.get_date_range(180)),
             ("Past Year", self.get_date_range(365)),
             ("Past 2 Years", self.get_date_range(730)),
-            ("All Since 2020", (datetime(2020, 1, 1), datetime.now())) # Specific start date
+            ("All Since 2020", (datetime(2020, 1, 1), datetime.now()))
         ]
 
         for label, date_range in date_ranges:
@@ -340,69 +337,61 @@ class Mr4InARowApp(QMainWindow):
             button.setStyleSheet(DATE_BUTTON_STYLE)
             button.setCheckable(True)
             button.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Connect with lambda to pass button itself and range
             button.clicked.connect(lambda checked, b=button, dr=date_range: self._on_date_button_selected(b, dr))
             date_options_layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
             self.date_buttons_group.append(button)
 
         main_layout.addLayout(date_options_layout)
-        main_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)) # Push buttons up
+        main_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-        # --- Action Buttons (Initially Hidden) ---
         self.action_buttons_layout = QHBoxLayout()
         self.action_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.action_buttons_layout.setSpacing(30) # Space between Back and Fetch
+        self.action_buttons_layout.setSpacing(30)
 
         self.back_button = QPushButton("Back")
         self.back_button.setStyleSheet(BACK_BUTTON_STYLE)
         self.back_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.back_button.clicked.connect(self._go_back_to_start)
-        self.back_button.hide() # Initially hidden
+        self.back_button.hide()
 
         self.fetch_button = QPushButton("Fetch Data")
         self.fetch_button.setStyleSheet(FETCH_BUTTON_STYLE)
         self.fetch_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.fetch_button.clicked.connect(self.start_data_fetch)
-        self.fetch_button.hide() # Initially hidden
+        self.fetch_button.hide()
 
         self.action_buttons_layout.addWidget(self.back_button)
         self.action_buttons_layout.addWidget(self.fetch_button)
 
         main_layout.addLayout(self.action_buttons_layout)
-        main_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)) # Bottom margin
+        main_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
     def _create_loading_screen(self):
         self.loading_screen_widget = QWidget()
         layout = QVBoxLayout(self.loading_screen_widget)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # GIF Label should be primary focus
         self.loading_gif_label = QLabel()
         self.loading_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # Use corrected filename 'flag.gif'
         flag_path = os.path.join(self.assets_dir, "flag.gif")
 
         if os.path.exists(flag_path):
-            # Assign QMovie to self.flag_movie
             self.flag_movie = QMovie(flag_path)
-            self.flag_movie.setScaledSize(QSize(600, 400)) # Size from brief
+            self.flag_movie.setScaledSize(QSize(600, 400))
             self.loading_gif_label.setMovie(self.flag_movie)
         else:
             print(f"Warning: Loading GIF not found at {flag_path}")
-            self.loading_gif_label.setText("🇮🇱") # Fallback
-            self.loading_gif_label.setFont(QFont(FONT_FAMILY, 100)) # Large fallback
-            self.flag_movie = None # Ensure attribute is None if file missing
+            self.loading_gif_label.setText("🇮🇱")
+            self.loading_gif_label.setFont(QFont(FONT_FAMILY, 100))
+            self.flag_movie = None
 
-        # Optional: Fetching text (centered below GIF)
         fetching_label = QLabel("Fetching...")
         fetching_label.setFont(QFont(FONT_FAMILY, 16))
         fetching_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        fetching_label.setStyleSheet(f"color: {UX_BLACK}; margin-top: 20px;") # Margin above text
-
+        fetching_label.setStyleSheet(f"color: {UX_BLACK}; margin-top: 20px;")
 
         layout.addWidget(self.loading_gif_label)
-        layout.addWidget(fetching_label) # Add text below GIF
+        layout.addWidget(fetching_label)
 
     def _create_success_screen(self):
         self.success_screen_widget = QWidget()
@@ -410,35 +399,28 @@ class Mr4InARowApp(QMainWindow):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(30)
 
-        # GIF Label
         self.success_gif_label = QLabel()
         self.success_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         mazel_tov_path = os.path.join(self.assets_dir, "mazel_tov.gif")
 
         if os.path.exists(mazel_tov_path):
-            # Assign QMovie to self.mazel_tov_movie
             self.mazel_tov_movie = QMovie(mazel_tov_path)
-            # Optional scaling:
-            # self.mazel_tov_movie.setScaledSize(QSize(400, 300)) 
             self.success_gif_label.setMovie(self.mazel_tov_movie)
-            # Disconnect first to be safe, then connect signal
             try: self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
             except TypeError: pass
             self.mazel_tov_movie.finished.connect(self._show_success_buttons)
         else:
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
-            self.success_gif_label.setText("🎉 Mazel Tov! 🎉") # Fallback
+            self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
-            self.mazel_tov_movie = None # Ensure attribute is None if file missing
-            # If no GIF, show buttons immediately after screen transition
-            QTimer.singleShot(200, self._show_success_buttons) # Allow transition animation time
+            self.mazel_tov_movie = None
+            QTimer.singleShot(200, self._show_success_buttons)
 
         layout.addWidget(self.success_gif_label)
 
-        # --- Action Buttons (Initially Hidden) ---
         self.success_buttons_layout = QHBoxLayout()
         self.success_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.success_buttons_layout.setSpacing(40) # Space between Home and View
+        self.success_buttons_layout.setSpacing(40)
 
         self.home_success_button = QPushButton("Home")
         self.home_success_button.setStyleSheet(HOME_SUCCESS_BUTTON_STYLE)
@@ -446,13 +428,12 @@ class Mr4InARowApp(QMainWindow):
         self.home_success_button.clicked.connect(self._go_back_to_start)
         self.home_success_button.hide()
 
-        self.view_results_button = QPushButton("View\nResults") # Multi-line text
+        self.view_results_button = QPushButton("View\nResults")
         self.view_results_button.setStyleSheet(VIEW_RESULTS_BUTTON_STYLE)
         self.view_results_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.view_results_button.clicked.connect(self.view_results)
         self.view_results_button.hide()
 
-        # Order: Home (smaller) then View Results (larger)
         self.success_buttons_layout.addWidget(self.home_success_button)
         self.success_buttons_layout.addWidget(self.view_results_button)
 
@@ -464,58 +445,53 @@ class Mr4InARowApp(QMainWindow):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(15)
 
-        # Text Labels
         oyvey_label = QLabel("Oy Vey!")
         oyvey_label.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         oyvey_label.setStyleSheet(f"color: {UX_RED};")
         oyvey_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Explicit text from brief
         explanation_text = "No results found. Please try another time period or fuck off."
         explanation_label = QLabel(explanation_text)
         explanation_label.setFont(QFont(FONT_FAMILY, 14))
         explanation_label.setStyleSheet(f"color: {UX_BLACK};")
         explanation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        explanation_label.setWordWrap(True) # Allow wrapping
+        explanation_label.setWordWrap(True)
 
-        # GIF Label
         self.oyvey_gif_label = QLabel()
         self.oyvey_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         oyvey_path = os.path.join(self.assets_dir, "oyvey.gif")
 
         if os.path.exists(oyvey_path):
-            # Assign QMovie to self.oyvey_movie
             self.oyvey_movie = QMovie(oyvey_path)
-            self.oyvey_movie.setScaledSize(QSize(400, 300)) # Size from brief
+            self.oyvey_movie.setScaledSize(QSize(400, 300))
             self.oyvey_gif_label.setMovie(self.oyvey_movie)
         else:
             print(f"Warning: Oy Vey GIF not found at {oyvey_path}")
-            self.oyvey_gif_label.setText("😕") # Fallback
+            self.oyvey_gif_label.setText("😕")
             self.oyvey_gif_label.setFont(QFont(FONT_FAMILY, 100))
-            self.oyvey_movie = None # Ensure attribute is None if file missing
+            self.oyvey_movie = None
 
         layout.addWidget(oyvey_label)
         layout.addWidget(explanation_label)
-        layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)) # Space
+        layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
         layout.addWidget(self.oyvey_gif_label)
-        layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)) # Space
+        layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-        # --- Action Buttons ---
         oyvey_buttons_layout = QHBoxLayout()
         oyvey_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         oyvey_buttons_layout.setSpacing(40)
 
-        home_oyvey_button = QPushButton("🏠") # Emoji
+        home_oyvey_button = QPushButton("🏠")
         home_oyvey_button.setStyleSheet(OYVEY_BUTTON_STYLE)
         home_oyvey_button.setCursor(Qt.CursorShape.PointingHandCursor)
         home_oyvey_button.setToolTip("Go Home")
         home_oyvey_button.clicked.connect(self._go_back_to_start)
 
-        close_oyvey_button = QPushButton("❌") # Emoji
+        close_oyvey_button = QPushButton("❌")
         close_oyvey_button.setStyleSheet(OYVEY_BUTTON_STYLE)
         close_oyvey_button.setCursor(Qt.CursorShape.PointingHandCursor)
         close_oyvey_button.setToolTip("Close Application")
-        close_oyvey_button.clicked.connect(self.close) # Connect to QMainWindow.close
+        close_oyvey_button.clicked.connect(self.close)
 
         oyvey_buttons_layout.addWidget(home_oyvey_button)
         oyvey_buttons_layout.addWidget(close_oyvey_button)
@@ -526,62 +502,58 @@ class Mr4InARowApp(QMainWindow):
 
     def show_screen(self, screen_widget):
         """Switches to the specified screen widget and handles animations."""
-        if not screen_widget: # Prevent errors if a screen failed to create
+        if not screen_widget:
             print("Error: Attempted to show a non-existent screen.")
             return
 
         current_widget = self.stacked_widget.currentWidget()
 
         if current_widget == screen_widget:
-            return # Already on the target screen
+            return
 
-        # Stop animations on the outgoing screen (Check if movie objects exist)
-        if current_widget == self.loading_screen_widget and self.flag_movie:
-            self.flag_movie.stop()
-        elif current_widget == self.success_screen_widget and self.mazel_tov_movie:
-             self.mazel_tov_movie.stop()
-        elif current_widget == self.oyvey_screen_widget and self.oyvey_movie:
-             self.oyvey_movie.stop()
+        if current_widget:
+            if current_widget == self.loading_screen_widget and self.flag_movie:
+                self.flag_movie.stop()
+            elif current_widget == self.success_screen_widget and self.mazel_tov_movie:
+                 self.mazel_tov_movie.stop()
+            elif current_widget == self.oyvey_screen_widget and self.oyvey_movie:
+                 self.oyvey_movie.stop()
 
-        # Fade out current widget
-        if current_widget: # Ensure there is a current widget to fade
             self.fade_out_animation = QPropertyAnimation(current_widget, b"windowOpacity")
-            self.fade_out_animation.setDuration(150) # Short fade out
-            self.fade_out_animation.setStartValue(current_widget.windowOpacity()) # Start from current opacity
+            self.fade_out_animation.setDuration(150)
+            self.fade_out_animation.setStartValue(current_widget.windowOpacity())
             self.fade_out_animation.setEndValue(0.0)
             self.fade_out_animation.finished.connect(lambda: self._finish_transition(screen_widget))
             self.fade_out_animation.start()
-        else: # If no current widget (first launch), just finish transition immediately
+        else:
             self._finish_transition(screen_widget)
 
 
     def _finish_transition(self, screen_widget):
         """Completes the screen switch, potentially fading in."""
         current_widget = self.stacked_widget.currentWidget()
-        # Reset opacity of old widget *after* switching if it exists
         if current_widget:
-             current_widget.setWindowOpacity(1.0)
+             current_widget.setWindowOpacity(1.0) # Reset opacity just in case
 
-        # Set the new screen widget but keep it transparent initially for fade-in
         screen_widget.setWindowOpacity(0.0)
         self.stacked_widget.setCurrentWidget(screen_widget)
 
-        # Start animations *before* fade-in for movies (Check if movie objects exist)
         if screen_widget == self.loading_screen_widget and self.flag_movie:
             self.flag_movie.start()
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
-                 self.mazel_tov_movie.setLoopCount(3) # Use the correct method name
+                 # *** USE setLoops() INSTEAD OF setLoopCount() ***
+                 self.mazel_tov_movie.setLoops(3) 
+                 # ***********************************************
                  self.home_success_button.hide()
                  self.view_results_button.hide()
                  self.mazel_tov_movie.start()
-             # If no movie, buttons shown via timer in _create_success_screen
+             # Buttons shown via timer or finished signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
 
-        # Fade in the new widget
         self.fade_in_animation = QPropertyAnimation(screen_widget, b"windowOpacity")
         self.fade_in_animation.setDuration(150)
         self.fade_in_animation.setStartValue(0.0)
@@ -592,11 +564,9 @@ class Mr4InARowApp(QMainWindow):
     def _reset_date_screen(self):
         """Resets date button selection and hides action buttons."""
         self.selected_date_range = None
-        # Check if date buttons exist
         if hasattr(self, 'date_buttons_group'):
             for button in self.date_buttons_group:
                 button.setChecked(False)
-        # Check if action buttons exist
         if hasattr(self, 'fetch_button'): self.fetch_button.hide()
         if hasattr(self, 'back_button'): self.back_button.hide()
 
@@ -607,19 +577,16 @@ class Mr4InARowApp(QMainWindow):
 
     def _on_date_button_selected(self, clicked_button, date_range):
         """Handles logic when a date range button is clicked."""
-        # Uncheck others first
         for button in self.date_buttons_group:
             if button != clicked_button and button.isChecked():
                 button.setChecked(False)
 
-        # Process the clicked button
         if clicked_button.isChecked():
             self.selected_date_range = date_range
             print(f"Date range selected: {date_range[0].strftime('%Y-%m-%d')} to {date_range[1].strftime('%Y-%m-%d')}")
             self.fetch_button.show()
             self.back_button.show()
         else:
-            # If the click resulted in the button being unchecked (clicked twice)
             self.selected_date_range = None
             print("Date range deselected.")
             self.fetch_button.hide()
@@ -627,7 +594,6 @@ class Mr4InARowApp(QMainWindow):
 
     def _show_success_buttons(self):
         """Called when the Mazel Tov animation finishes or if no GIF."""
-        # Check if the success screen is still the active screen before showing buttons
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
             print("Showing success buttons.")
             self.home_success_button.show()
@@ -646,7 +612,6 @@ class Mr4InARowApp(QMainWindow):
         else:
              print("Error: Loading screen not available.")
              return
-
 
         self.worker = WorkerThread(self.selected_date_range)
         self.worker.finished.connect(self.handle_fetch_completed)
@@ -687,10 +652,10 @@ class Mr4InARowApp(QMainWindow):
                  print(f"Error opening file with system command: {e}")
             except Exception as e:
                 print(f"Error opening file {self.excel_path}: {e}")
-                traceback.print_exc() # Print full traceback for unexpected errors
+                traceback.print_exc()
         else:
             print(f"Error: Could not find results file at {self.excel_path}")
-            # Consider showing a QMessageBox here
+
 
     # --- Utility Methods ---
     def get_date_range(self, days):
