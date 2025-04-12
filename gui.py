@@ -391,26 +391,21 @@ class Mr4InARowApp(QMainWindow):
         self.success_gif_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         mazel_tov_path = os.path.join(self.assets_dir, "mazel_tov.gif")
 
-        # Corrected Indentation Here
         if os.path.exists(mazel_tov_path):
             self.mazel_tov_movie = QMovie(mazel_tov_path)
             self.success_gif_label.setMovie(self.mazel_tov_movie)
-            # Connect the standard 'finished' signal for when loops complete
             try:
                 self.mazel_tov_movie.finished.disconnect(self._show_success_buttons)
             except TypeError:
-                pass # Signal not connected
+                pass
             self.mazel_tov_movie.finished.connect(self._show_success_buttons)
         else:
-            # This else block is now correctly indented
             print(f"Warning: Success GIF not found at {mazel_tov_path}")
             self.success_gif_label.setText("🎉 Mazel Tov! 🎉")
             self.success_gif_label.setFont(QFont(FONT_FAMILY, 24))
             self.mazel_tov_movie = None
-            # If no movie, show buttons after a small delay for screen transition
             QTimer.singleShot(200, self._show_success_buttons)
 
-        # Remainder of the function is correctly indented
         layout.addWidget(self.success_gif_label)
 
         self.success_buttons_layout = QHBoxLayout()
@@ -535,13 +530,16 @@ class Mr4InARowApp(QMainWindow):
             self.flag_movie.start()
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
-                 # Use setProperty as the final attempt for loop control
-                 self.mazel_tov_movie.setProperty("loopCount", 3)
+                 # *** Set loop count to 2 using setProperty ***
+                 self.mazel_tov_movie.setProperty("loopCount", 2)
+                 # *********************************************
                  self.home_success_button.hide()
                  self.view_results_button.hide()
                  self.mazel_tov_movie.start()
              # Buttons shown via timer or finished signal
         elif screen_widget == self.oyvey_screen_widget and self.oyvey_movie:
+             # Set loops to infinite (-1) for Oy Vey, or remove setProperty to use default
+             self.oyvey_movie.setProperty("loopCount", -1) 
              self.oyvey_movie.start()
         elif screen_widget == self.date_screen_widget:
             self._reset_date_screen()
@@ -583,6 +581,9 @@ class Mr4InARowApp(QMainWindow):
     def _show_success_buttons(self):
         if self.stacked_widget.currentWidget() == self.success_screen_widget:
             print("Showing success buttons.")
+            # Ensure movie stopped if finished signal fired
+            if self.mazel_tov_movie and self.mazel_tov_movie.state() == QMovie.MovieState.Running:
+                 self.mazel_tov_movie.stop()
             self.home_success_button.show()
             self.view_results_button.show()
         else:
