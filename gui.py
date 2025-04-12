@@ -543,7 +543,7 @@ class Mr4InARowApp(QMainWindow):
         elif screen_widget == self.success_screen_widget:
              if self.mazel_tov_movie:
                  # *** USE setLoops() INSTEAD OF setLoopCount() ***
-                 self.mazel_tov_movie.setLoops(3) 
+                 self.mazel_tov_movie.setLoopCount(3) 
                  # ***********************************************
                  self.home_success_button.hide()
                  self.view_results_button.hide()
