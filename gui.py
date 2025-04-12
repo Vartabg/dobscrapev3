@@ -31,6 +31,7 @@ class DOBViolationsApp(QWidget):
 
         self.layout.addWidget(self.start_button)
         self.setLayout(self.layout)
+        self.show()
 
     def show_date_options(self):
         for i in reversed(range(self.layout.count())):
