@@ -1,6 +1,8 @@
 # Reconstruct and save the correct full gui.py file with resource_path and complete logic.
 # This will be a proper version ready for packaging and testing.
 
+from pathlib import Path  # ✅ This fixes the NameError
+
 final_gui_path = Path("/mnt/data/gui.py")
 
 final_gui_template = '''
