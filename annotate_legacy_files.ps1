@@ -33,14 +33,14 @@ Get-ChildItem -Path $sourceFolder -Recurse -Include *.py, *.spec | ForEach-Objec
 
     # Check if the file is already annotated
     if ($firstLine -eq $annotationComment.TrimEnd()) {
-        Write-Host "⏭️ Skipped (already annotated): $fileName"
+        Write-Host "Skipped (already annotated): $fileName"
         return
     }
 
     # Backup the file before modifying it
     $backupPath = Join-Path -Path $backupFolder -ChildPath $fileName
     Copy-Item -Path $filePath -Destination $backupPath -Force
-    Write-Host "📦 Backed up: $fileName → dobscrape_legacy_backup/"
+    Write-Host "Backed up: $fileName → dobscrape_legacy_backup/"
 
     # Preserve timestamp
     $originalTimestamp = Get-Item -Path $filePath | Select-Object -ExpandProperty LastWriteTime
@@ -54,7 +54,7 @@ Get-ChildItem -Path $sourceFolder -Recurse -Include *.py, *.spec | ForEach-Objec
     (Get-Item -Path $filePath).LastWriteTime = $originalTimestamp
 
     # Log the update
-    Write-Host "✅ Updated: $fileName"
+    Write-Host "Updated: $fileName"
 }
 
-Write-Host "✅ Annotation complete for all DOBScraper legacy files."
+Write-Host "Annotation complete for all DOBScraper legacy files."
