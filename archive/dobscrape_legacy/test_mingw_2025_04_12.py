@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError
 from distutils.util import is_mingw, split_quoted

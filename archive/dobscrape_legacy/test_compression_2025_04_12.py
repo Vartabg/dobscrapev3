@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests compressed data parsing functionality for all
 of the parsers defined in parsers.py

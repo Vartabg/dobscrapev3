@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 An exhaustive list of pandas methods exercising NDFrame.__finalize__.
 """

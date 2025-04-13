@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import sys, platform, re, pytest
 from numpy.core._multiarray_umath import (
     __cpu_features__,

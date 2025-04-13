@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Series.item method, mainly testing that we get python scalars as opposed to
 numpy scalars.

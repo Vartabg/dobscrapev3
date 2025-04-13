@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """ Test cases for time series specific (freq conversion, etc) """
 from datetime import (
     date,

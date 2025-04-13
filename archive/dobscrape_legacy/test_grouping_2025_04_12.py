@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 test where we are determining what we are grouping, or getting groups
 """

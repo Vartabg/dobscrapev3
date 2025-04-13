@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 This module provides decorator functions which can be applied to test objects
 in order to skip those objects when certain conditions occur. A sample use case

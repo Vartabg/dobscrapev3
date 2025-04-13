@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that features that are currently unsupported in
 either the Python or C parser are actually enforced

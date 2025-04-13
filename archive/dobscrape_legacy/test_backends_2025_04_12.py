@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 #
 # (C) Copyright 2023 Enthought, Inc., Austin, TX
 # All right reserved.

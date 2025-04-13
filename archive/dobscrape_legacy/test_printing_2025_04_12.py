@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # Note! This file is aimed specifically at pandas.io.formats.printing utility
 # functions, not the general printing of pandas objects.
 import string

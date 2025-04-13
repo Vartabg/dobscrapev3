@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """A small application that can be used to test a WSGI server and check
 it for WSGI compliance.
 """

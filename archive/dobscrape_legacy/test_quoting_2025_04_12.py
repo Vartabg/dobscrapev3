@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that quoting specifications are properly handled
 during parsing for all of the parsers defined in parsers.py

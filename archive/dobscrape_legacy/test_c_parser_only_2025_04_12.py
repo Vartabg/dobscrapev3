@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that apply specifically to the CParser. Unless specifically stated
 as a CParser-specific issue, the goal is to eventually move as many of

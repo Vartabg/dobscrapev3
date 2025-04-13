@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import numpy as np
 
 from numpy.lib.histograms import histogram, histogramdd, histogram_bin_edges

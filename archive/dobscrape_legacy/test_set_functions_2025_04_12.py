@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import pytest
 from hypothesis import given
 from hypothesis.extra.array_api import make_strategies_namespace

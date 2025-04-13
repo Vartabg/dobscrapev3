@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from io import StringIO
 from string import ascii_uppercase
 import textwrap

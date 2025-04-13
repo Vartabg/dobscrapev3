@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Tests for distutils.text_file."""
 
 from distutils.tests import support

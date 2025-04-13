@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """ test with the .transform """
 import numpy as np
 import pytest

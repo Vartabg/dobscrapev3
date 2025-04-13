@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests specific to `np.loadtxt` added during the move of loadtxt to be backed
 by C code.

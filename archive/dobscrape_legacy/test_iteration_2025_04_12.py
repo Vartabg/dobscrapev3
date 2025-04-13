@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 class TestIteration:
     def test_keys(self, datetime_series):
         assert datetime_series.keys() is datetime_series.index

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 test .agg behavior / note that .apply is tested generally in test_groupby.py
 """

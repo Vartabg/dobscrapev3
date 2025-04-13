@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that duplicate columns are handled appropriately when parsed by the
 CSV engine. In general, the expected result is that they are either thoroughly

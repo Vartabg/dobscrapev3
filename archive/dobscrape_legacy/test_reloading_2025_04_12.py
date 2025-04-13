@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from numpy.testing import (
     assert_raises,
     assert_warns,

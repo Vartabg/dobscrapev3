@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests of the ._exceptions module. Primarily for exercising the __str__ methods.
 """

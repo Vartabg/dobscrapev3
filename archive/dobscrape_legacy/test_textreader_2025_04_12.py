@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests the TextReader class in parsers.pyx, which
 is integral to the C engine in parsers.py

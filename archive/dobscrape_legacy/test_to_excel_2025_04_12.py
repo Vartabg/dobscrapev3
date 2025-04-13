@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Tests formatting as writer-agnostic ExcelCells
 
 ExcelFormatter is tested implicitly in pandas/tests/io/excel

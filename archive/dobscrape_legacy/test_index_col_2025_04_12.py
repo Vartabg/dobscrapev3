@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that the specified index column (a.k.a "index_col")
 is properly handled or inferred during parsing for all of

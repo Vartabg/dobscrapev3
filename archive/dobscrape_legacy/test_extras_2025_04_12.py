@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # pylint: disable-msg=W0611, W0612, W0511
 """Tests suite for MaskedArray.
 Adapted from the original test_ma by Pierre Gerard-Marchant

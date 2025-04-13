@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Test functions for fftpack.helper module
 
 Copied from fftpack.helper by Pearu Peterson, October 2005

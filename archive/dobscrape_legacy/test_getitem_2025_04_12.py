@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Series.__getitem__ test classes are organized by the type of key passed.
 """

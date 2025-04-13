@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import numpy as np
 
 from pandas._libs.tslibs.dtypes import abbrev_to_npy_unit

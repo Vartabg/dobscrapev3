@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # Only tests that raise an error and have no better location should go here.
 # Tests for specific groupby methods should go in their respective
 # test file.

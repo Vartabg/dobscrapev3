@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that apply specifically to the Python parser. Unless specifically
 stated as a Python-specific issue, the goal is to eventually move as many of

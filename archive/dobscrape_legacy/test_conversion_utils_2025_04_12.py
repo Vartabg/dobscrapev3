@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests for numpy/core/src/multiarray/conversion_utils.c
 """

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests that work on the Python, C and PyArrow engines but do not have a
 specific classification into the other test modules.

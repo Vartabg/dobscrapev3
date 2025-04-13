@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 See also: test_reindex.py:TestReindexSetIndex
 """

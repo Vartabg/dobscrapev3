@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from collections.abc import Iterator
 from io import StringIO
 from pathlib import Path

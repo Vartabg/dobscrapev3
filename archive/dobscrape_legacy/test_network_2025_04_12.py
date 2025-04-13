@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests parsers ability to read and parse non-local files
 and hence require a network connection to be read.

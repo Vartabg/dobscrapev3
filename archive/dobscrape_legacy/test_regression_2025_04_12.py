@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import sys
 from numpy.testing import (
     assert_, assert_array_equal, assert_raises,

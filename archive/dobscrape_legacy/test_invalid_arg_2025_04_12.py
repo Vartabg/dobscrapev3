@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # Tests specifically aimed at detecting bad arguments.
 # This file is organized by reason for exception.
 #     1. always invalid argument values

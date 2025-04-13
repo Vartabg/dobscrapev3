@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import logging
 from optparse import Values
 from typing import Any, Dict, List

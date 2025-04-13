@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # https://github.com/python/mypy/issues/16936
 # mypy: disable-error-code="has-type"
 """Integration tests for setuptools that focus on building packages via pip.

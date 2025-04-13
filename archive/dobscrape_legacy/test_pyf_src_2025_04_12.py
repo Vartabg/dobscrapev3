@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # This test is ported from numpy.distutils
 from numpy.f2py._src_pyf import process_str
 from numpy.testing import assert_equal

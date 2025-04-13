@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests related to the ``symbol`` attribute of the ABCPolyBase class.
 """

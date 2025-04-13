@@ -1,0 +1,74 @@
+DOBScraper Version Log
+=======================
+
+Project Codename: Mr. 4 in a Row
+Client: Leonard Galper
+Owner: Garo Vartabedian
+Versioning Date Format: YYYY-MM-DD
+
+───────────────────────────────────────────────────────────────
+
+🔖 v1.0.0  |  2025-04-12  |  Code Freeze + Archival Phase
+---------------------------------------------------------------
+- ✅ Final GUI implemented with Claude (wave flag → GIF success)
+- ✅ Naming convention standardized:
+    - `gui.py` (main frontend)
+    - `scraper_async.py` (data logic)
+    - `excel_generator.py` (output engine)
+- ✅ Claude designated as Documentation Lead
+- ✅ Copilot scripted `annotate_legacy_files.ps1`
+- ✅ Archived 800+ legacy `.py` and `.spec` files
+- ✅ Timestamped and moved to `/archive/dobscrape_legacy_backup`
+- ✅ Summary comment inserted for Copilot-based inline insight
+- ⌛ Claude pending markdown summaries (to be fed manually)
+- ⌛ Gemini awaiting updated `gui.py` for final UX audit
+- ⌛ Abacus.ai to run analytics once `violations.xlsx` uploaded
+- ❌ Map generation officially scrapped per new UX spec
+
+───────────────────────────────────────────────────────────────
+
+🧪 v0.9.3-beta  |  2025-04-11  |  GUI Rewrite & Layout Fixes
+---------------------------------------------------------------
+- Rewrote layout engine to solve:
+    - Off-center buttons
+    - Flag timing mismatch
+    - Looping bugs with GIFs
+- Merged Gemini's final stable GUI into repo
+- Added `flag.gif` and `mazel_tov.gif` under `/assets/`
+- Created fallback “Oy Vey” screen for no-data results
+- Locked resolution to 800x600
+- State machine logic now controls flow: Start → Select → Flag → Results
+- Integrated backend trigger into GUI with no text labels
+
+───────────────────────────────────────────────────────────────
+
+🧱 v0.6.0-alpha  |  2025-04-09  |  Rebuild from Scratch
+---------------------------------------------------------------
+- Previous versions scrapped due to code divergence
+- Merged Claude + Gemini proposals
+- Removed complaints logic and external map libraries
+- Started new file architecture with clean async base
+- Introduced Lead Type logic:
+    - “New” (<30 days), “Warm” (30-180), “Old” (>180)
+
+───────────────────────────────────────────────────────────────
+
+🗑️ v0.5.1 (Legacy)  |  2025-04-01
+---------------------------------------------------------------
+- Procedural scraping mixed with synchronous GUI
+- Included abandoned features: mapbox, Google Forms webhook
+- Lacked testable structure
+- Bugs included: race conditions, malformed CSVs, frozen flag.gif
+
+───────────────────────────────────────────────────────────────
+
+🏁 Initial Commit  |  2025-03-27
+---------------------------------------------------------------
+- Basic DOB scraper using `requests` and manual filters
+- Output to plain `violations.csv`
+- GUI was placeholder Tkinter box
+- Targeted Queens/Brooklyn DOB API (Postman prototype)
+- First appearance of "Mr. 4 in a Row" codename
+
+───────────────────────────────────────────────────────────────
+

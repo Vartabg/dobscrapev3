@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 This file adds basic tests to test the NEP 50 style promotion compatibility
 mode.  Most of these test are likely to be simply deleted again once NEP 50

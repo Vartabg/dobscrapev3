@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import textwrap, re, sys, subprocess, shlex
 from pathlib import Path
 from collections import namedtuple

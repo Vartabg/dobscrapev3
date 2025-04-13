@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from numpy.testing import (assert_, assert_array_equal)
 import numpy as np
 import pytest

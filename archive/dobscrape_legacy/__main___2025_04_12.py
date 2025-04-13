@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Wheel command line tool (enable python -m wheel syntax)
 """

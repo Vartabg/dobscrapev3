@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from collections.abc import Iterator
 from datetime import datetime
 from decimal import Decimal

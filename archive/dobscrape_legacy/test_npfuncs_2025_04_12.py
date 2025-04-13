@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests for np.foo applied to Series, not necessarily ufuncs.
 """

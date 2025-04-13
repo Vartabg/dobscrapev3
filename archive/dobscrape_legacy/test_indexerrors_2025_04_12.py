@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import numpy as np
 from numpy.testing import (
         assert_raises, assert_raises_regex,

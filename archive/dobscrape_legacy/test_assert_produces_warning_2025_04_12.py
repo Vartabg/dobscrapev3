@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """"
 Test module for testing ``pandas._testing.assert_produces_warning``.
 """

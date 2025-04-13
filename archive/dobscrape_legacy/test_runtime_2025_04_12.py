@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Test the runtime usage of `numpy.typing`."""
 
 from __future__ import annotations

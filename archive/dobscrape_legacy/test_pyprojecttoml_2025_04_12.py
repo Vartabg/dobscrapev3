@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import re
 from configparser import ConfigParser
 from inspect import cleandoc

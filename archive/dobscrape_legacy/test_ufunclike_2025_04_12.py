@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import numpy as np
 import numpy.core as nx
 import numpy.lib.ufunclike as ufl

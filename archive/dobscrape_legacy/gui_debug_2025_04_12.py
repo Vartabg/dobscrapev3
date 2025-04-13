@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # FINAL PATCHED VERSION — Start button visibility fix applied
 import sys
 import asyncio

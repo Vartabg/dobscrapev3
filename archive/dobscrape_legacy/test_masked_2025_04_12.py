@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 This file contains a minimal set of tests for compliance with the extension
 array interface test suite, and should contain no other tests.

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import operator
 
 from numpy.testing import assert_raises, suppress_warnings

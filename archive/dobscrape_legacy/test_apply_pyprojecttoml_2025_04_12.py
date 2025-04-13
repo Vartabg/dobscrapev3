@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Make sure that applying the configuration from pyproject.toml is equivalent to
 applying a similar configuration from setup.cfg
 

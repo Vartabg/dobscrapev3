@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import sys
 import importlib
 from importlib.util import LazyLoader, find_spec, module_from_spec

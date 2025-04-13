@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Tests for Table Schema integration."""
 from collections import OrderedDict
 from io import StringIO

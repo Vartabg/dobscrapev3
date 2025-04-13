@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Shim for _umath_tests to allow a deprecation period for the new name.
 

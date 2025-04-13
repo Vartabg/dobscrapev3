@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import pytest
 import textwrap
 from numpy.testing import assert_array_equal, assert_equal, assert_raises

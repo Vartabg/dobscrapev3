@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests for array coercion, mainly through testing `np.array` results directly.
 Note that other such tests exist, e.g., in `test_api.py` and many corner-cases

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """ Test scripts
 
 Test that we can run executable scripts that have been installed with numpy.

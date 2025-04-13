@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests the 'read_fwf' function in parsers.py. This
 test suite is independent of the others because the

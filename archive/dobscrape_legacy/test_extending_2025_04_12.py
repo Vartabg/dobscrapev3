@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from importlib.util import spec_from_file_location, module_from_spec
 import os
 import pathlib

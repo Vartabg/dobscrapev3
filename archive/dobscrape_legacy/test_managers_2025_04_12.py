@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Testing interaction between the different managers (BlockManager, ArrayManager)
 """

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # Copyright 2014-2015 Nathan West
 #
 # This file is part of autocommand.

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests multithreading behaviour for reading and
 parsing files for each parser defined in parsers.py

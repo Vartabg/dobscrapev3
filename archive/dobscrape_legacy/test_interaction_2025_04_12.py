@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Tests of interaction of matrix with other parts of numpy.
 
 Note that tests with MaskedArray and linalg are done in separate files.

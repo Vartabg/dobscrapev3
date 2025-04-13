@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # ------------------------------------------------------------------
 # Copyright (c) 2021 PyInstaller Development Team.
 #

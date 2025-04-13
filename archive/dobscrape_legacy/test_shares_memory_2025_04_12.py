@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 import pandas.util._test_decorators as td
 
 import pandas as pd

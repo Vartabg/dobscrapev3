@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 # Tests aimed at pandas.core.indexers
 import numpy as np
 import pytest

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 Tests for the private NumPy argument parsing functionality.
 They mainly exists to ensure good test coverage without having to try the

@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 from pandas import Index
 import pandas._testing as tm
 from pandas.core.construction import extract_array

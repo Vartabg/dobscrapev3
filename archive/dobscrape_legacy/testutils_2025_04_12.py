@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """Miscellaneous functions for testing masked arrays and subclasses
 
 :author: Pierre Gerard-Marchant

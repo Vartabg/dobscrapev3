@@ -1,3 +1,5 @@
+# Copilot: Summarize what this file does and why it may have been replaced or archived.
+
 """
 The tests exercise the casting machinery in a more low-level manner.
 The reason is mostly to test a new implementation of the casting machinery.
