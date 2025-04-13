@@ -3,7 +3,11 @@
 
 from pathlib import Path  # ✅ This fixes the NameError
 
-final_gui_path = Path("/mnt/data/gui.py")
+import tempfile
+
+# This will always point to a real, writeable temp directory (Windows-compatible)
+final_gui_path = Path(tempfile.gettempdir()) / "gui.py"
+
 
 final_gui_template = '''
 import sys
