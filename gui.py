@@ -1,15 +1,3 @@
-# Reconstruct and save the correct full gui.py file with resource_path and complete logic.
-# This will be a proper version ready for packaging and testing.
-
-from pathlib import Path  # ✅ This fixes the NameError
-
-import tempfile
-
-# This will always point to a real, writeable temp directory (Windows-compatible)
-final_gui_path = Path(tempfile.gettempdir()) / "gui.py"
-
-
-final_gui_template = '''
 import sys
 import os
 import subprocess
@@ -17,10 +5,13 @@ from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QStackedWidget, QSizePolicy, QSpacerItem
 from PyQt6.QtGui import QMovie, QFont
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer
-
 import pandas as pd
 from scraper_async import scrape_violations
 from excel_generator import generate_excel
+
+# Copilot: Please rewrite this file so it does not write to disk at runtime and ensures UTF-8 is used for all text operations. Eliminate usage of Path().write_text(). Integrate the GUI logic directly into the application.
+# Reconstruct and integrate the GUI logic directly into the application without writing to disk.
+
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and PyInstaller"""
@@ -180,7 +171,7 @@ class Mr4App(QMainWindow):
         label = QLabel("Oy Vey!")
         label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
         layout.addWidget(label)
-        sub = QLabel("No results found. Please try another time period or fuck off.")
+        sub = QLabel("No results found. Please try another time period.")
         sub.setFont(QFont("Arial", 14))
         layout.addWidget(sub)
         gif_label = QLabel()
@@ -248,10 +239,3 @@ if __name__ == "__main__":
     win = Mr4App()
     win.show()
     sys.exit(app.exec())
-'''
-
-# Save the file
-final_gui_path.write_text(final_gui_template.strip())
-
-# Return for download
-final_gui_path
