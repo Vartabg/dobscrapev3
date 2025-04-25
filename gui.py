@@ -1,4 +1,30 @@
-# gui.py – Updated GUI with polished GIF handling and result screen transitions
+import os
+import sys
+import subprocess
+import pandas as pd
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
+    QStackedWidget, QMessageBox, QGraphicsOpacityEffect
+)
+
+def resource_path(relative_path):
+    """Get absolute path to resource for PyInstaller compatibility"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+def generate_excel(data, output_path="violations.xlsx"):
+    """Generate Excel file with violation data"""
+    try:
+        data.to_excel(output_path, index=False)
+        return True
+    except Exception as e:
+        print(f"Failed to generate Excel: {e}")
+        return False# gui.py – Updated GUI with polished GIF handling and result screen transitions
 
 import os
 import subprocess
