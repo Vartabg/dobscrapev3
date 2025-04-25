@@ -3,11 +3,11 @@
 import os
 import subprocess
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation
-from PyQt6.QtGui import QMovie, QKeySequence
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut
 from PyQt6.QtWidgets import QGraphicsOpacityEffect
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton, QStackedWidget,
-    QShortcut, QMessageBox
+    QMessageBox
 )
 
 from utils import resource_path, generate_excel
