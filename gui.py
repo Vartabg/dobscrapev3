@@ -8,8 +8,32 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer
 import pandas as pd
 from scraper_async import scrape_violations
 from excel_generator import generate_excel
+import io
 
-# Copilot: Please rewrite this file so it does not write to disk at runtime and ensures UTF-8 is used for all text operations. Eliminate usage of Path().write_text(). Integrate the GUI logic directly into the application.
+# Modify the application to avoid writing to disk and handle data in memory.
+
+def generate_excel_in_memory(dataframe):
+    """Generate an Excel file in memory from a DataFrame."""
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        dataframe.to_excel(writer, index=False, sheet_name='Violations')
+    output.seek(0)
+    return output
+
+def view_results_in_memory(excel_data):
+    """Open the Excel file in memory using the default application."""
+    try:
+        temp_file = io.BytesIO(excel_data.getvalue())
+        if sys.platform == "win32":
+            with open("temp.xlsx", "wb") as f:
+                f.write(temp_file.read())
+            os.startfile("temp.xlsx")
+        elif sys.platform == "darwin":
+            subprocess.call(["open", temp_file])
+        else:
+            subprocess.call(["xdg-open", temp_file])
+    except Exception as e:
+        print(f"Error opening results: {e}")
 # Reconstruct and integrate the GUI logic directly into the application without writing to disk.
 
 
