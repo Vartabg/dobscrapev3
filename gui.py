@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation
 from PyQt6.QtGui import QMovie, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
-    QStackedWidget, QMessageBox, QGraphicsOpacityEffect
+    QStackedWidget, QMessageBox, QGraphicsOpacityEffect, QHBoxLayout
 )
 
 def resource_path(relative_path):
@@ -24,19 +24,7 @@ def generate_excel(data, output_path="violations.xlsx"):
         return True
     except Exception as e:
         print(f"Failed to generate Excel: {e}")
-        return False# gui.py – Updated GUI with polished GIF handling and result screen transitions
-
-import os
-import subprocess
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation
-from PyQt6.QtGui import QMovie, QKeySequence, QShortcut
-from PyQt6.QtWidgets import QGraphicsOpacityEffect
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton, QStackedWidget,
-    QMessageBox
-)
-
-from utils import resource_path, generate_excel
+        return False
 
 class MainWindow(QMainWindow):
     __slots__ = (
@@ -172,3 +160,89 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 print(f"Failed to open Excel: {e}")
         self.close()
+        
+    # Add missing methods
+    def show_history(self):
+        print("History view not implemented yet")
+        
+    def show_about(self):
+        print("About screen not implemented yet")
+        
+    def show_error_buttons(self):
+        new_screen = QWidget()
+        layout = QVBoxLayout()
+        
+        # Create buttons
+        home_button = QPushButton("Home")
+        home_button.setFixedSize(100, 100)
+        home_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 50px;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+            }
+        """)
+        home_button.clicked.connect(self.show_home)
+        
+        close_button = QPushButton("Close")
+        close_button.setFixedSize(100, 100)
+        close_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 50px;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+            }
+        """)
+        close_button.clicked.connect(self.close)
+        
+        # Add buttons side by side in horizontal layout
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        button_layout.addWidget(home_button)
+        button_layout.addSpacing(20)
+        button_layout.addWidget(close_button)
+        button_layout.addStretch()
+        
+        layout.addStretch()
+        layout.addLayout(button_layout)
+        layout.addStretch()
+        
+        new_screen.setLayout(layout)
+        
+        # Replace the GIF screen with button screen
+        self.stack.removeWidget(self.results_screen)
+        self.results_screen = new_screen
+        self.stack.addWidget(self.results_screen)
+        self.stack.setCurrentWidget(self.results_screen)
+    
+    def show_home(self):
+        # Placeholder for home screen navigation
+        print("Return to home screen")
+
+# For testing
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    
+    # Create a mock result for testing
+    class MockResult:
+        def __init__(self, has_results=True):
+            self.empty = not has_results
+    
+    window = MainWindow()
+    window.show()
+    
+    # Simulate scrape completion after 1 second
+    QTimer.singleShot(1000, lambda: window.scrape_done(MockResult(True)))
+    
+    sys.exit(app.exec())
