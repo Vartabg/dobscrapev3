@@ -5,11 +5,12 @@ import sys
 import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect, QPoint
-from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect, QPoint, QSize, QParallelAnimationGroup
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette, QLinearGradient, QPainter, QPen, QPainterPath, QBrush
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
-    QStackedWidget, QHBoxLayout, QGridLayout, QGraphicsDropShadowEffect
+    QStackedWidget, QHBoxLayout, QGridLayout, QGraphicsDropShadowEffect,
+    QGraphicsOpacityEffect
 )
 
 # Import scraper
@@ -25,102 +26,206 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-class ModernButton(QPushButton):
-    """Professional button with subtle animation effects"""
-    def __init__(self, text, parent=None):
+class HarmonizedButton(QPushButton):
+    """Aesthetically pleasing button with subtle animations and color harmony"""
+    def __init__(self, text, color_scheme="blue", parent=None):
         super().__init__(text, parent)
         
-        # Color scheme - Israeli blue with complementary colors
-        self.primary_color = "#0038b8"  # Israeli blue
-        self.hover_color = "#0046d5"    # Slightly lighter blue
-        self.pressed_color = "#002a8c"  # Darker blue
+        # Define color palettes - more variety, less intense blues
+        self.color_schemes = {
+            "blue": {
+                "primary": "#3a75c4",  # Softer blue
+                "hover": "#4b86d5",    # Slightly lighter blue
+                "pressed": "#2f64b3",  # Slightly darker blue
+                "text": "#ffffff",     # White text
+                "shadow": QColor(48, 71, 94, 70)  # Blue-gray shadow, more transparent
+            },
+            "slate": {
+                "primary": "#546e7a",  # Slate gray-blue
+                "hover": "#607d8b",    # Lighter slate
+                "pressed": "#455a64",  # Darker slate
+                "text": "#ffffff",     # White text
+                "shadow": QColor(45, 45, 45, 60)  # Dark gray shadow
+            },
+            "teal": {
+                "primary": "#26a69a",  # Teal
+                "hover": "#2bbbad",    # Lighter teal
+                "pressed": "#00897b",  # Darker teal
+                "text": "#ffffff",     # White text
+                "shadow": QColor(38, 166, 154, 70)  # Teal shadow
+            },
+            "sand": {
+                "primary": "#d4b483",  # Sand color
+                "hover": "#e5c595",    # Lighter sand
+                "pressed": "#c3a372",  # Darker sand
+                "text": "#3e2723",     # Dark brown text
+                "shadow": QColor(150, 136, 112, 60)  # Sand shadow
+            }
+        }
         
-        # Set initial styling
+        # Set color scheme
+        self.color_scheme = color_scheme if color_scheme in self.color_schemes else "blue"
+        self.colors = self.color_schemes[self.color_scheme]
+        
+        # Set up gradient colors
+        self.gradient_top = QColor(self.colors["primary"])
+        self.gradient_bottom = QColor(self.colors["primary"]).darker(105)
+        
+        # Track states
+        self._hovered = False
+        self._pressed = False
+        self.setMouseTracking(True)
+        
+        # Set up effects
+        self.setup_effects()
+        
+        # Custom styling - use properties, not stylesheet for better performance
         self.setStyleSheet(f"""
             QPushButton {{
-                background-color: {self.primary_color};
-                color: white;
+                color: {self.colors["text"]};
                 border: none;
-                border-radius: 4px;
-                font-weight: bold;
                 padding: 8px 16px;
+                font-weight: bold;
                 text-align: center;
-            }}
-            QPushButton:hover {{
-                background-color: {self.hover_color};
-            }}
-            QPushButton:pressed {{
-                background-color: {self.pressed_color};
             }}
         """)
         
-        # Add drop shadow for subtle elevation
+    def setup_effects(self):
+        """Set up visual effects for the button"""
+        # Shadow effect for depth
         self.shadow = QGraphicsDropShadowEffect()
         self.shadow.setBlurRadius(10)
-        self.shadow.setColor(QColor(0, 0, 0, 50))
+        self.shadow.setColor(self.colors["shadow"])
         self.shadow.setOffset(0, 2)
         self.setGraphicsEffect(self.shadow)
         
-        # Track hover state
-        self._hovered = False
-        self.setMouseTracking(True)
+    def paintEvent(self, event):
+        """Custom painting for gradient background and rounded corners"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Calculate corner radius - responsive to button height
+        corner_radius = min(10, self.height() / 4)
+        
+        # Create rounded rectangle path
+        path = QPainterPath()
+        path.addRoundedRect(0, 0, self.width(), self.height(), corner_radius, corner_radius)
+        
+        # Clip to the rounded rectangle
+        painter.setClipPath(path)
+        
+        # Create gradient
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        
+        if self._pressed:
+            # Pressed state - darker gradient, flipped
+            gradient.setColorAt(0, self.gradient_bottom.darker(110))
+            gradient.setColorAt(1, self.gradient_top.darker(110))
+        elif self._hovered:
+            # Hover state - lighter gradient
+            hover_top = self.gradient_top.lighter(107)
+            hover_bottom = self.gradient_bottom.lighter(107)
+            gradient.setColorAt(0, hover_top)
+            gradient.setColorAt(1, hover_bottom)
+        else:
+            # Normal state - standard gradient
+            gradient.setColorAt(0, self.gradient_top)
+            gradient.setColorAt(1, self.gradient_bottom)
+            
+        # Fill with gradient
+        painter.fillPath(path, QBrush(gradient))
+        
+        # Draw subtle inner border
+        if not self._pressed:
+            border_color = QColor(self.colors["primary"])
+            border_color.setAlpha(80)
+            pen = QPen(border_color)
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        
+        # Draw text - center aligned
+        painter.setPen(QColor(self.colors["text"]))
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.text())
         
     def enterEvent(self, event):
         """Handle mouse enter with animation"""
         self._hovered = True
         
-        # Create elevation animation
+        # Animate shadow and subtle scale effect
+        animations = QParallelAnimationGroup(self)
+        
+        # Shadow animation
         shadow_anim = QPropertyAnimation(self.shadow, b"blurRadius")
         shadow_anim.setStartValue(10)
         shadow_anim.setEndValue(15)
-        shadow_anim.setDuration(150)
+        shadow_anim.setDuration(180)
         shadow_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        shadow_anim.start()
+        animations.addAnimation(shadow_anim)
         
-        # Create offset animation
+        # Shadow offset animation
         offset_anim = QPropertyAnimation(self.shadow, b"offset")
         offset_anim.setStartValue(QPoint(0, 2))
         offset_anim.setEndValue(QPoint(0, 4))
-        offset_anim.setDuration(150)
+        offset_anim.setDuration(180)
         offset_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        offset_anim.start()
+        animations.addAnimation(offset_anim)
         
+        # Start animations
+        animations.start(QPropertyAnimation.DeleteWhenStopped)
+        
+        self.update()  # Repaint with hover state
         super().enterEvent(event)
         
     def leaveEvent(self, event):
         """Handle mouse leave with animation"""
         self._hovered = False
         
-        # Create elevation animation
+        # Animate shadow and scale back to normal
+        animations = QParallelAnimationGroup(self)
+        
+        # Shadow animation
         shadow_anim = QPropertyAnimation(self.shadow, b"blurRadius")
         shadow_anim.setStartValue(15)
         shadow_anim.setEndValue(10)
-        shadow_anim.setDuration(150)
+        shadow_anim.setDuration(180)
         shadow_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        shadow_anim.start()
+        animations.addAnimation(shadow_anim)
         
-        # Create offset animation
+        # Shadow offset animation
         offset_anim = QPropertyAnimation(self.shadow, b"offset")
         offset_anim.setStartValue(QPoint(0, 4))
         offset_anim.setEndValue(QPoint(0, 2))
-        offset_anim.setDuration(150)
+        offset_anim.setDuration(180)
         offset_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        offset_anim.start()
+        animations.addAnimation(offset_anim)
         
+        # Start animations
+        animations.start(QPropertyAnimation.DeleteWhenStopped)
+        
+        self.update()  # Repaint with normal state
         super().leaveEvent(event)
         
     def mousePressEvent(self, event):
         """Handle mouse press with animation"""
         if event.button() == Qt.MouseButton.LeftButton:
-            # Create press animation - reduce shadow
+            self._pressed = True
+            
+            # Quick shadow shrink
             self.shadow.setBlurRadius(5)
             self.shadow.setOffset(0, 1)
             
+            self.update()  # Repaint with pressed state
         super().mousePressEvent(event)
         
     def mouseReleaseEvent(self, event):
         """Handle mouse release with animation"""
         if event.button() == Qt.MouseButton.LeftButton:
+            self._pressed = False
+            
+            # Create release ripple effect
+            self._create_ripple_at(event.position().x(), event.position().y())
+            
             # Return to hover or normal state
             if self._hovered:
                 self.shadow.setBlurRadius(15)
@@ -129,7 +234,54 @@ class ModernButton(QPushButton):
                 self.shadow.setBlurRadius(10)
                 self.shadow.setOffset(0, 2)
                 
+            self.update()  # Repaint with normal/hover state
         super().mouseReleaseEvent(event)
+
+    def _create_ripple_at(self, x, y):
+        """Create a ripple effect at the specified position"""
+        # Create ripple widget as child
+        ripple = QWidget(self)
+        ripple.setGeometry(0, 0, 10, 10)
+        ripple.setStyleSheet("background-color: rgba(255, 255, 255, 120); border-radius: 5px;")
+        ripple.show()
+        
+        # Center ripple at click position
+        ripple.move(int(x - 5), int(y - 5))
+        
+        # Make it transparent
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.7)
+        ripple.setGraphicsEffect(opacity_effect)
+        
+        # Animate ripple expansion
+        size_anim = QPropertyAnimation(ripple, b"geometry")
+        size_anim.setStartValue(QRect(int(x - 5), int(y - 5), 10, 10))
+        
+        # Target ripple size based on button size
+        final_size = max(self.width(), self.height()) * 2
+        size_anim.setEndValue(QRect(
+            int(x - final_size/2), 
+            int(y - final_size/2), 
+            final_size, 
+            final_size
+        ))
+        
+        # Animate opacity
+        fade_anim = QPropertyAnimation(opacity_effect, b"opacity")
+        fade_anim.setStartValue(0.7)
+        fade_anim.setEndValue(0.0)
+        
+        # Create animation group
+        group = QParallelAnimationGroup(self)
+        group.addAnimation(size_anim)
+        group.addAnimation(fade_anim)
+        group.setDuration(400)
+        group.setEasingCurve(QEasingCurve.Type.OutQuad)
+        
+        # Delete ripple when done
+        group.finished.connect(ripple.deleteLater)
+        group.start(QPropertyAnimation.DeleteWhenStopped)
+
 
 class DOBScraperGUI(QMainWindow):
     def __init__(self):
@@ -151,9 +303,17 @@ class DOBScraperGUI(QMainWindow):
         self.setup_shortcuts()
         self.output_file_path = os.path.abspath("violations.xlsx")
 
-        # Color scheme
-        self.primary_color = "#0038b8"  # Israeli blue
-        self.accent_color = "#007aff"   # Accent blue
+        # Color scheme with more variety
+        self.primary_color = "#3a75c4"  # Softer blue
+        self.accent_color = "#26a69a"   # Teal accent
+        self.neutral_color = "#546e7a"  # Slate gray
+        self.warm_color = "#d4b483"     # Sand color
+        
+        # Button color assignments - create visual hierarchy
+        self.primary_button_color = "blue"   # Primary actions
+        self.secondary_button_color = "teal" # Secondary actions
+        self.tertiary_button_color = "slate" # Tertiary actions
+        self.special_button_color = "sand"   # Special accent buttons
         
         # Load Jewish fonts
         self.setup_fonts()
@@ -203,8 +363,10 @@ class DOBScraperGUI(QMainWindow):
                         self.available_jewish_fonts.append(actual_name)
         
         # Then check system fonts
+        font_db = QFontDatabase()
         for font_name in self.jewish_fonts:
-            if font_name not in self.available_jewish_fonts and QFontDatabase().hasFamily(font_name):
+            # Check if we don't already have this font and if it exists in system
+            if font_name not in self.available_jewish_fonts and font_db.hasFamily(font_name):
                 print(f"Found system font: {font_name}")
                 self.available_jewish_fonts.append(font_name)
         
@@ -222,9 +384,11 @@ class DOBScraperGUI(QMainWindow):
         self.button_font = QFont(self.main_font_family, 12, QFont.Weight.Bold)
         self.small_font = QFont(self.main_font_family, 10)
 
-    def create_styled_button(self, text, width=200, height=50, connect_to=None):
-        """Create a professional styled button"""
-        button = ModernButton(text)
+    def create_styled_button(self, text, width=200, height=50, color_scheme=None, connect_to=None):
+        """Create an aesthetically pleasing button with visual diversity"""
+        # Use provided color scheme or default to primary_button_color
+        scheme = color_scheme if color_scheme else self.primary_button_color
+        button = HarmonizedButton(text, color_scheme=scheme)
         button.setFixedSize(width, height)
         button.setFont(self.button_font)
         
@@ -291,8 +455,8 @@ class DOBScraperGUI(QMainWindow):
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle_label.setFont(self.subtitle_font)
 
-        # Start button with modern style
-        start_button = self.create_styled_button("Start", 200, 60, self.show_category_screen)
+        # Start button with special styling
+        start_button = self.create_styled_button("Start", 220, 60, self.special_button_color, self.show_category_screen)
 
         layout.addStretch()
         layout.addWidget(title_label)
@@ -319,10 +483,17 @@ class DOBScraperGUI(QMainWindow):
         layout.addWidget(title_label)
         layout.addSpacing(30)
 
-        # Category buttons
-        recent_button = self.create_styled_button("Recent Periods", 250, 60, self.show_recent_periods)
-        years_button = self.create_styled_button("Past Years", 250, 60, self.show_past_years)
-        all_button = self.create_styled_button("All Since 2015", 250, 60, 
+        # Category buttons with visual variety
+        recent_button = self.create_styled_button("Recent Periods", 250, 60, 
+                                                self.primary_button_color, 
+                                                self.show_recent_periods)
+        
+        years_button = self.create_styled_button("Past Years", 250, 60, 
+                                                self.secondary_button_color, 
+                                                self.show_past_years)
+        
+        all_button = self.create_styled_button("All Since 2015", 250, 60,
+                                              self.special_button_color, 
                                               lambda: self.begin_scraping("2015-01-01"))
 
         layout.addWidget(recent_button, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -332,8 +503,11 @@ class DOBScraperGUI(QMainWindow):
         layout.addWidget(all_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addSpacing(30)
         
-        # Back button
-        back_button = self.create_styled_button("Back", 120, 40, lambda: self.stack.setCurrentIndex(0))
+        # Back button (tertiary style)
+        back_button = self.create_styled_button("Back", 120, 40, 
+                                              self.tertiary_button_color,
+                                              lambda: self.stack.setCurrentIndex(0))
+        
         layout.addWidget(back_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.category_screen.setLayout(layout)
@@ -349,7 +523,7 @@ class DOBScraperGUI(QMainWindow):
             ("1 Month", 30),
             ("3 Months", 90),
             ("6 Months", 180),
-        ], "Recent Periods")
+        ], "Recent Periods", self.primary_button_color)
 
     def show_past_years(self):
         """Show Past Years selection"""
@@ -363,10 +537,10 @@ class DOBScraperGUI(QMainWindow):
             ("7 Years", 2555),
             ("8 Years", 2920),
             ("9 Years", 3285),
-        ], "Past Years")
+        ], "Past Years", self.secondary_button_color)
 
-    def show_period_buttons(self, options, title_text):
-        """Generate dynamic period buttons in a grid layout"""
+    def show_period_buttons(self, options, title_text, button_color_scheme):
+        """Generate dynamic period buttons in a grid layout with visual rhythm"""
         self.period_screen = QWidget()
         main_layout = QVBoxLayout()
         
@@ -382,15 +556,28 @@ class DOBScraperGUI(QMainWindow):
         grid_layout = QGridLayout()
         grid_layout.setSpacing(15)
         
-        # Add buttons to grid
+        # Add buttons to grid with alternating visual patterns
         for i, (label, days) in enumerate(options):
-            button = self.create_styled_button(label, 180, 50)
-            button.clicked.connect(lambda checked, d=days: self.calculate_start_date(d))
+            # Create subtle visual rhythm by alternating button styles
             row, col = divmod(i, 3)  # 3 columns
+            
+            # Subtle size variance creates visual interest
+            width = 180 + ((i % 3) * 5)  # Slightly vary widths
+            
+            button = self.create_styled_button(
+                label, width, 50, 
+                button_color_scheme,
+                lambda checked, d=days: self.calculate_start_date(d)
+            )
+            
             grid_layout.addWidget(button, row, col)
         
-        # Back button
-        back_button = self.create_styled_button("Back", 120, 40, self.show_category_screen)
+        # Back button (tertiary style)
+        back_button = self.create_styled_button(
+            "Back", 120, 40, 
+            self.tertiary_button_color,
+            self.show_category_screen
+        )
         
         # Add grid to main layout
         main_layout.addLayout(grid_layout)
@@ -558,10 +745,18 @@ class DOBScraperGUI(QMainWindow):
         file_path.setStyleSheet("color: #555555; font-style: italic;")
         file_path.setWordWrap(True)
         
-        # Action buttons with modern styling
-        view_button = self.create_styled_button("View Report", 200, 50, self.view_excel)
-        home_button = self.create_styled_button("Return Home", 180, 50, self.restart_app)
-        exit_button = self.create_styled_button("Exit", 180, 50, self.close)
+        # Action buttons with visual variety
+        view_button = self.create_styled_button("View Report", 200, 50, 
+                                               self.special_button_color, 
+                                               self.view_excel)
+        
+        home_button = self.create_styled_button("Return Home", 180, 50, 
+                                               self.primary_button_color, 
+                                               self.restart_app)
+        
+        exit_button = self.create_styled_button("Exit", 180, 50, 
+                                              self.tertiary_button_color, 
+                                              self.close)
         
         # Button layout
         button_layout = QHBoxLayout()
@@ -657,9 +852,14 @@ class DOBScraperGUI(QMainWindow):
         subtitle_label.setFont(self.subtitle_font)
         subtitle_label.setWordWrap(True)
         
-        # Modern styled buttons
-        home_button = self.create_styled_button("Try Again", 180, 50, self.restart_app)
-        exit_button = self.create_styled_button("Exit", 180, 50, self.close)
+        # Modern styled buttons with visual variety
+        home_button = self.create_styled_button("Try Again", 180, 50, 
+                                               self.primary_button_color, 
+                                               self.restart_app)
+        
+        exit_button = self.create_styled_button("Exit", 180, 50, 
+                                               self.tertiary_button_color, 
+                                               self.close)
         
         # Button layout
         button_layout = QHBoxLayout()
