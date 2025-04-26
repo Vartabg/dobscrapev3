@@ -326,7 +326,7 @@ class DOBScraperGUI(QMainWindow):
         QShortcut(QKeySequence("Esc"), self, self.close)
     
     def setup_fonts(self):
-        """Set up Jewish fonts"""
+        """Set up Jewish fonts with corrected QFontDatabase usage"""
         # Define Jewish font priority list (system fonts first)
         self.jewish_fonts = [
             "Frank Ruehl CLM",  # Traditional Jewish font
@@ -362,11 +362,11 @@ class DOBScraperGUI(QMainWindow):
                         print(f"Loaded font: {actual_name} from {font_path}")
                         self.available_jewish_fonts.append(actual_name)
         
-        # Then check system fonts
-        font_db = QFontDatabase()
+        # Then check system fonts - FIXED: Use static methods instead
+        # In PyQt6, we need to use QFontDatabase.families() to get the list of available system fonts
+        system_families = QFontDatabase.families()
         for font_name in self.jewish_fonts:
-            # Check if we don't already have this font and if it exists in system
-            if font_name not in self.available_jewish_fonts and font_db.hasFamily(font_name):
+            if font_name not in self.available_jewish_fonts and font_name in system_families:
                 print(f"Found system font: {font_name}")
                 self.available_jewish_fonts.append(font_name)
         
