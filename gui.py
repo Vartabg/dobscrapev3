@@ -5,8 +5,8 @@ import sys
 import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect
-from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette, QPainter, QPixmap
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect, QPoint
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
     QStackedWidget, QHBoxLayout, QGridLayout, QGraphicsDropShadowEffect
@@ -25,20 +25,21 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-class HebrewStyleButton(QPushButton):
-    """Custom button with Jewish styling"""
+class ModernButton(QPushButton):
+    """Professional button with subtle animation effects"""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.primary_color = "#0038b8"  # Israeli blue
-        self.hover_color = "#1a4fc8"
-        self.pressed_color = "#002a8c"
-        self.text_color = "white"
         
-        # Default state
+        # Color scheme - Israeli blue with complementary colors
+        self.primary_color = "#0038b8"  # Israeli blue
+        self.hover_color = "#0046d5"    # Slightly lighter blue
+        self.pressed_color = "#002a8c"  # Darker blue
+        
+        # Set initial styling
         self.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.primary_color};
-                color: {self.text_color};
+                color: white;
                 border: none;
                 border-radius: 4px;
                 font-weight: bold;
@@ -47,67 +48,102 @@ class HebrewStyleButton(QPushButton):
             }}
             QPushButton:hover {{
                 background-color: {self.hover_color};
-                border-left: 4px solid #ffdb58; /* Gold accent on hover */
-                border-right: 4px solid #ffdb58;
             }}
             QPushButton:pressed {{
                 background-color: {self.pressed_color};
-                padding-left: 10px;
-                padding-top: 10px;
             }}
         """)
         
-        # Add drop shadow
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setColor(QColor(0, 0, 0, 80))
-        shadow.setOffset(3, 3)
-        self.setGraphicsEffect(shadow)
+        # Add drop shadow for subtle elevation
+        self.shadow = QGraphicsDropShadowEffect()
+        self.shadow.setBlurRadius(10)
+        self.shadow.setColor(QColor(0, 0, 0, 50))
+        self.shadow.setOffset(0, 2)
+        self.setGraphicsEffect(self.shadow)
         
-    def paintEvent(self, event):
-        super().paintEvent(event)
+        # Track hover state
+        self._hovered = False
+        self.setMouseTracking(True)
         
-        # Add Star of David accent (subtle)
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    def enterEvent(self, event):
+        """Handle mouse enter with animation"""
+        self._hovered = True
         
-        # Draw small Star of David in top right corner
-        star_size = min(self.width(), self.height()) * 0.15
-        margin = 5
+        # Create elevation animation
+        shadow_anim = QPropertyAnimation(self.shadow, b"blurRadius")
+        shadow_anim.setStartValue(10)
+        shadow_anim.setEndValue(15)
+        shadow_anim.setDuration(150)
+        shadow_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        shadow_anim.start()
         
-        # Create Star of David using lines
-        painter.setPen(QColor(255, 255, 255, 70))  # Semi-transparent white
+        # Create offset animation
+        offset_anim = QPropertyAnimation(self.shadow, b"offset")
+        offset_anim.setStartValue(QPoint(0, 2))
+        offset_anim.setEndValue(QPoint(0, 4))
+        offset_anim.setDuration(150)
+        offset_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        offset_anim.start()
         
-        # Triangle facing up
-        x1 = self.width() - margin - star_size
-        y1 = margin + star_size
-        x2 = self.width() - margin - star_size/2
-        y2 = margin
-        x3 = self.width() - margin
-        y3 = margin + star_size
+        super().enterEvent(event)
         
-        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
-        painter.drawLine(int(x2), int(y2), int(x3), int(y3))
-        painter.drawLine(int(x3), int(y3), int(x1), int(y1))
+    def leaveEvent(self, event):
+        """Handle mouse leave with animation"""
+        self._hovered = False
         
-        # Triangle facing down
-        x4 = self.width() - margin - star_size
-        y4 = margin
-        x5 = self.width() - margin - star_size/2
-        y5 = margin + star_size
-        x6 = self.width() - margin
-        y6 = margin
+        # Create elevation animation
+        shadow_anim = QPropertyAnimation(self.shadow, b"blurRadius")
+        shadow_anim.setStartValue(15)
+        shadow_anim.setEndValue(10)
+        shadow_anim.setDuration(150)
+        shadow_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        shadow_anim.start()
         
-        painter.drawLine(int(x4), int(y4), int(x5), int(y5))
-        painter.drawLine(int(x5), int(y5), int(x6), int(y6))
-        painter.drawLine(int(x6), int(y6), int(x4), int(y4))
+        # Create offset animation
+        offset_anim = QPropertyAnimation(self.shadow, b"offset")
+        offset_anim.setStartValue(QPoint(0, 4))
+        offset_anim.setEndValue(QPoint(0, 2))
+        offset_anim.setDuration(150)
+        offset_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        offset_anim.start()
+        
+        super().leaveEvent(event)
+        
+    def mousePressEvent(self, event):
+        """Handle mouse press with animation"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Create press animation - reduce shadow
+            self.shadow.setBlurRadius(5)
+            self.shadow.setOffset(0, 1)
+            
+        super().mousePressEvent(event)
+        
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release with animation"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Return to hover or normal state
+            if self._hovered:
+                self.shadow.setBlurRadius(15)
+                self.shadow.setOffset(0, 4)
+            else:
+                self.shadow.setBlurRadius(10)
+                self.shadow.setOffset(0, 2)
+                
+        super().mouseReleaseEvent(event)
 
 class DOBScraperGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DOB Violations Scraper")
         self.setFixedSize(800, 600)
-        self.setStyleSheet("background-color: white;")
+        self.setStyleSheet("""
+            QMainWindow, QWidget {
+                background-color: white;
+            }
+            QLabel {
+                color: #333333;
+            }
+        """)
 
         self.start_date = "2015-01-01"
         self.stack = QStackedWidget()
@@ -117,9 +153,7 @@ class DOBScraperGUI(QMainWindow):
 
         # Color scheme
         self.primary_color = "#0038b8"  # Israeli blue
-        self.hover_color = "#1a4fc8"
-        self.pressed_color = "#002a8c"
-        self.text_color = "white"
+        self.accent_color = "#007aff"   # Accent blue
         
         # Load Hebrew-inspired font
         self.setup_fonts()
@@ -152,8 +186,8 @@ class DOBScraperGUI(QMainWindow):
         self.small_font = QFont(self.hebrew_font_family, 10)
 
     def create_styled_button(self, text, width=200, height=50, connect_to=None):
-        """Create a custom Hebrew-styled button"""
-        button = HebrewStyleButton(text)
+        """Create a professional styled button"""
+        button = ModernButton(text)
         button.setFixedSize(width, height)
         button.setFont(self.button_font)
         
@@ -213,14 +247,14 @@ class DOBScraperGUI(QMainWindow):
         title_label = QLabel("DOB Violations Scraper")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         
         # Subtitle
         subtitle_label = QLabel("Building Violation Reports")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle_label.setFont(self.subtitle_font)
 
-        # Start button with Jewish style
+        # Start button with modern style
         start_button = self.create_styled_button("Start", 200, 60, self.show_category_screen)
 
         layout.addStretch()
@@ -243,7 +277,7 @@ class DOBScraperGUI(QMainWindow):
         title_label = QLabel("Select Category")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         
         layout.addWidget(title_label)
         layout.addSpacing(30)
@@ -303,7 +337,7 @@ class DOBScraperGUI(QMainWindow):
         title_label = QLabel(title_text)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         main_layout.addWidget(title_label)
         main_layout.addSpacing(20)
         
@@ -313,9 +347,7 @@ class DOBScraperGUI(QMainWindow):
         
         # Add buttons to grid
         for i, (label, days) in enumerate(options):
-            # Create button with Jewish style
             button = self.create_styled_button(label, 180, 50)
-            # Use lambda to capture specific days value
             button.clicked.connect(lambda checked, d=days: self.calculate_start_date(d))
             row, col = divmod(i, 3)  # 3 columns
             grid_layout.addWidget(button, row, col)
@@ -353,7 +385,7 @@ class DOBScraperGUI(QMainWindow):
         title_label = QLabel("Processing Request")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         
         # Subtitle with date
         subtitle_label = QLabel(f"Searching for violations since {self.start_date}")
@@ -447,28 +479,33 @@ class DOBScraperGUI(QMainWindow):
             self.show_final_success_screen()
 
     def show_final_success_screen(self):
-        """Show final success screen with Hebrew styling"""
+        """Show final success screen with elegant design"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title using Hebrew font
+        # Title
         title_label = QLabel("Mazel Tov!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         
         # Subtitle
         subtitle_label = QLabel("Violation report generated successfully")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle_label.setFont(self.subtitle_font)
         
-        # File info in clean, minimal style
-        file_info = QLabel(f"Location: {self.output_file_path}")
-        file_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        file_info.setFont(QFont("Arial", 12))
-        file_info.setWordWrap(True)
+        # File info with clean styling
+        file_label = QLabel("Report saved to:")
+        file_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        file_label.setFont(QFont("Arial", 12))
         
-        # Hebrew styled buttons
+        file_path = QLabel(self.output_file_path)
+        file_path.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        file_path.setFont(QFont("Arial", 11))
+        file_path.setStyleSheet("color: #555555; font-style: italic;")
+        file_path.setWordWrap(True)
+        
+        # Action buttons with modern styling
         view_button = self.create_styled_button("View Report", 200, 50, self.view_excel)
         home_button = self.create_styled_button("Return Home", 180, 50, self.restart_app)
         exit_button = self.create_styled_button("Exit", 180, 50, self.close)
@@ -484,9 +521,10 @@ class DOBScraperGUI(QMainWindow):
         layout.addWidget(title_label)
         layout.addSpacing(20)
         layout.addWidget(subtitle_label)
-        layout.addSpacing(20)
-        layout.addWidget(file_info)
-        layout.addSpacing(40)
+        layout.addSpacing(15)
+        layout.addWidget(file_label)
+        layout.addWidget(file_path)
+        layout.addSpacing(30)
         layout.addWidget(view_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addSpacing(20)
         layout.addLayout(button_layout)
@@ -534,15 +572,15 @@ class DOBScraperGUI(QMainWindow):
             self.show_final_failure_screen()
 
     def show_final_failure_screen(self):
-        """Show final failure screen with Hebrew styling"""
+        """Show final failure screen with elegant design"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title using Hebrew font
+        # Title
         title_label = QLabel("Oy Vey!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
+        title_label.setStyleSheet(f"color: {self.primary_color};")
         
         # Subtitle
         subtitle_label = QLabel("No building violations were found for the selected dates")
@@ -550,7 +588,7 @@ class DOBScraperGUI(QMainWindow):
         subtitle_label.setFont(self.subtitle_font)
         subtitle_label.setWordWrap(True)
         
-        # Hebrew styled buttons
+        # Modern styled buttons
         home_button = self.create_styled_button("Try Again", 180, 50, self.restart_app)
         exit_button = self.create_styled_button("Exit", 180, 50, self.close)
         
