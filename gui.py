@@ -155,7 +155,7 @@ class DOBScraperGUI(QMainWindow):
         self.primary_color = "#0038b8"  # Israeli blue
         self.accent_color = "#007aff"   # Accent blue
         
-        # Load Hebrew-inspired font
+        # Load Jewish fonts
         self.setup_fonts()
 
         self.start_screen()
@@ -166,24 +166,61 @@ class DOBScraperGUI(QMainWindow):
         QShortcut(QKeySequence("Esc"), self, self.close)
     
     def setup_fonts(self):
-        """Set up Hebrew-inspired fonts"""
-        # Try to load Jewish font
-        font_path = resource_path("assets/fonts/jewish.ttf")
-        self.hebrew_font_family = "Arial"  # Default fallback
+        """Set up Jewish fonts"""
+        # Define Jewish font priority list (system fonts first)
+        self.jewish_fonts = [
+            "Frank Ruehl CLM",  # Traditional Jewish font
+            "Hadassah Friedlaender", 
+            "David CLM",        # Classic Hebrew font
+            "Narkisim",         # Popular Hebrew font
+            "Miriam CLM", 
+            "David Libre",      # Google's Hebrew font
+            "Shofar"            # Decorative Jewish font
+        ]
         
-        if os.path.exists(font_path):
-            font_id = QFontDatabase.addApplicationFont(font_path)
-            if font_id != -1:
-                family = QFontDatabase.applicationFontFamilies(font_id)
-                if family:
-                    self.hebrew_font_family = family[0]
-                    print(f"Loaded Hebrew font: {self.hebrew_font_family}")
+        # Add embedded fonts from assets
+        font_paths = [
+            ("assets/fonts/FrankRuehlCLM-Medium.ttf", "Frank Ruehl CLM"),
+            ("assets/fonts/DavidCLM-Medium.ttf", "David CLM"),
+            ("assets/fonts/MiriamCLM-Book.ttf", "Miriam CLM"),
+            ("assets/fonts/ShofarRegular.ttf", "Shofar"),
+            ("assets/fonts/jewish.ttf", "Jewish")  # Fallback
+        ]
+        
+        # Try to load the fonts
+        self.available_jewish_fonts = []
+        
+        # First try embedded fonts
+        for font_path, font_name in font_paths:
+            full_path = resource_path(font_path)
+            if os.path.exists(full_path):
+                font_id = QFontDatabase.addApplicationFont(full_path)
+                if font_id != -1:
+                    families = QFontDatabase.applicationFontFamilies(font_id)
+                    if families:
+                        actual_name = families[0]
+                        print(f"Loaded font: {actual_name} from {font_path}")
+                        self.available_jewish_fonts.append(actual_name)
+        
+        # Then check system fonts
+        for font_name in self.jewish_fonts:
+            if font_name not in self.available_jewish_fonts and QFontDatabase().hasFamily(font_name):
+                print(f"Found system font: {font_name}")
+                self.available_jewish_fonts.append(font_name)
+        
+        # Set the main font based on availability
+        if self.available_jewish_fonts:
+            self.main_font_family = self.available_jewish_fonts[0]
+            print(f"Using Jewish font: {self.main_font_family}")
+        else:
+            self.main_font_family = "Arial"  # Fallback
+            print("No Jewish fonts available, using Arial")
         
         # Set font sizes
-        self.title_font = QFont(self.hebrew_font_family, 24, QFont.Weight.Bold)
-        self.subtitle_font = QFont(self.hebrew_font_family, 16)
-        self.button_font = QFont(self.hebrew_font_family, 12, QFont.Weight.Bold)
-        self.small_font = QFont(self.hebrew_font_family, 10)
+        self.title_font = QFont(self.main_font_family, 24, QFont.Weight.Bold)
+        self.subtitle_font = QFont(self.main_font_family, 16)
+        self.button_font = QFont(self.main_font_family, 12, QFont.Weight.Bold)
+        self.small_font = QFont(self.main_font_family, 10)
 
     def create_styled_button(self, text, width=200, height=50, connect_to=None):
         """Create a professional styled button"""
@@ -465,29 +502,45 @@ class DOBScraperGUI(QMainWindow):
         self.stack.addWidget(success_screen)
         self.stack.setCurrentWidget(success_screen)
 
-        # After 1 playthrough, show final success screen
+        # After 1 playthrough plus 500ms delay, show final success screen
         if is_success_valid:
             self.success_movie.start()
             self.success_movie.frameChanged.connect(self.check_success_complete)
+            # Add delay by using a global variable
+            self.completed_frames = 0
         else:
             # If GIF is missing or invalid, show final success screen after a delay
             QTimer.singleShot(1000, self.show_final_success_screen)
-
+    
     def check_success_complete(self):
-        if self.success_movie.currentFrameNumber() == self.success_movie.frameCount() - 1:
+        total_frames = self.success_movie.frameCount()
+        current_frame = self.success_movie.currentFrameNumber()
+        
+        # Check if we've completed one full playthrough
+        if current_frame == total_frames - 1:
+            self.completed_frames += 1
+            
+            # If we've seen the complete animation once, wait a bit longer then proceed
+            if self.completed_frames >= 1:
+                # Stop the movie after 500ms delay
+                QTimer.singleShot(500, self.stop_success_and_proceed)
+
+    def stop_success_and_proceed(self):
+        """Stop the success movie and proceed to final screen"""
+        if hasattr(self, 'success_movie') and self.success_movie:
             self.success_movie.stop()
-            self.show_final_success_screen()
+        self.show_final_success_screen()
 
     def show_final_success_screen(self):
         """Show final success screen with elegant design"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title
+        # Title with Jewish font
         title_label = QLabel("Mazel Tov!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet(f"color: {self.primary_color};")
+        title_label.setStyleSheet(f"color: {self.primary_color}; font-size: 32px;")
         
         # Subtitle
         subtitle_label = QLabel("Violation report generated successfully")
@@ -558,29 +611,45 @@ class DOBScraperGUI(QMainWindow):
         self.stack.addWidget(fail_screen)
         self.stack.setCurrentWidget(fail_screen)
 
-        # After 1 playthrough, show final failure screen
+        # After 1 playthrough plus 500ms delay, show final failure screen
         if is_fail_valid:
             self.fail_movie.start()
             self.fail_movie.frameChanged.connect(self.check_failure_complete)
+            # Add delay by using a global variable
+            self.completed_frames_failure = 0
         else:
             # If GIF is missing or invalid, show final failure screen after a delay
             QTimer.singleShot(1000, self.show_final_failure_screen)
 
     def check_failure_complete(self):
-        if self.fail_movie.currentFrameNumber() == self.fail_movie.frameCount() - 1:
+        total_frames = self.fail_movie.frameCount()
+        current_frame = self.fail_movie.currentFrameNumber()
+        
+        # Check if we've completed one full playthrough
+        if current_frame == total_frames - 1:
+            self.completed_frames_failure += 1
+            
+            # If we've seen the complete animation once, wait a bit longer then proceed
+            if self.completed_frames_failure >= 1:
+                # Stop the movie after 500ms delay
+                QTimer.singleShot(500, self.stop_failure_and_proceed)
+
+    def stop_failure_and_proceed(self):
+        """Stop the failure movie and proceed to final screen"""
+        if hasattr(self, 'fail_movie') and self.fail_movie:
             self.fail_movie.stop()
-            self.show_final_failure_screen()
+        self.show_final_failure_screen()
 
     def show_final_failure_screen(self):
         """Show final failure screen with elegant design"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title
+        # Title with Jewish font
         title_label = QLabel("Oy Vey!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(self.title_font)
-        title_label.setStyleSheet(f"color: {self.primary_color};")
+        title_label.setStyleSheet(f"color: {self.primary_color}; font-size: 32px;")
         
         # Subtitle
         subtitle_label = QLabel("No building violations were found for the selected dates")
