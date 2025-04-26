@@ -265,18 +265,24 @@ class HarmonizedButton(QPushButton):
             final_size, 
             final_size
         ))
+        # Set duration on individual animation
+        size_anim.setDuration(400)
         
         # Animate opacity
         fade_anim = QPropertyAnimation(opacity_effect, b"opacity")
         fade_anim.setStartValue(0.7)
         fade_anim.setEndValue(0.0)
+        # Set duration on individual animation
+        fade_anim.setDuration(400)
         
         # Create animation group
         group = QParallelAnimationGroup(self)
         group.addAnimation(size_anim)
         group.addAnimation(fade_anim)
-        group.setDuration(400)
-        group.setEasingCurve(QEasingCurve.Type.OutQuad)
+        
+        # Set easing curve on individual animations
+        size_anim.setEasingCurve(QEasingCurve.Type.OutQuad)
+        fade_anim.setEasingCurve(QEasingCurve.Type.OutQuad)
         
         # Delete ripple when done
         group.finished.connect(ripple.deleteLater)
