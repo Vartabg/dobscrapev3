@@ -1,22 +1,21 @@
-from PyQt6.QtGui import QFontDatabase
+# gui.py
+
 import os
 import sys
 import subprocess
 import pandas as pd
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QSize
-from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QPixmap
+from datetime import datetime, timedelta
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
-    QStackedWidget, QMessageBox, QGraphicsOpacityEffect, QHBoxLayout
+    QStackedWidget, QHBoxLayout
 )
 
-# Import the scraper
-try:
-    from scraper_async import scrape_violations
-except ImportError:
-    print("Warning: Could not import scraper_async. Running in demo mode.")
-    scrape_violations = None
+# Import scraper
+from scraper_async import scrape_violations
 
+# Utility
 def resource_path(relative_path):
     """Get absolute path to resource for PyInstaller compatibility"""
     try:
@@ -25,74 +24,47 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def generate_excel(data, output_path="violations.xlsx"):
-    """Generate Excel file with violation data"""
-    try:
-        # For MockResult, just create a dummy file
-        if not hasattr(data, 'to_excel'):
-            with open(output_path, 'w') as f:
-                f.write("Mock Excel data")
-        else:
-            data.to_excel(output_path, index=False)
-        return True
-    except Exception as e:
-        print(f"Failed to generate Excel: {e}")
-        return False
-
 class DOBScraperGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mr. 4 in a Row")
         self.setFixedSize(800, 600)
         self.setStyleSheet("background-color: white;")
-        
-        # Initialize variables
-        self.gif_loop_count = 0
-        self.has_results = False
-        
-        # Create stacked widget for different screens
+
+        self.start_date = "2015-01-01"
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
-        
-        # Set up keyboard shortcuts
         self.setup_shortcuts()
-        
-        # Create screens
-        self.create_start_screen()
-        self.create_loading_screen()
-        
-        # Show start screen
+
+        self.start_screen()
         self.stack.setCurrentIndex(0)
-    
+
     def setup_shortcuts(self):
-        """Set up keyboard shortcuts"""
         QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
         QShortcut(QKeySequence("Esc"), self, self.close)
-    
-    def create_start_screen(self):
-        """Create the initial screen with start button"""
+
+    def start_screen(self):
+        """First screen with Start button"""
         start_screen = QWidget()
         layout = QVBoxLayout()
-        
-        # Try to load custom font
+
+        # Jewish font if available
         font_path = resource_path("assets/fonts/jewish.ttf")
-        custom_font = QFont("Arial", 14)  # Default font
+        custom_font = QFont("Arial", 18)
         if os.path.exists(font_path):
             font_id = QFontDatabase.addApplicationFont(font_path)
             if font_id != -1:
-                font_families = QFontDatabase.applicationFontFamilies(font_id)
-                if font_families:
-                    custom_font = QFont(font_families[0], 14)
-        
-        # Create start button
-        start_button = QPushButton("Start Scraping")
+                family = QFontDatabase.applicationFontFamilies(font_id)
+                if family:
+                    custom_font = QFont(family[0], 18)
+
+        start_button = QPushButton("Start")
         start_button.setFixedSize(150, 150)
         start_button.setFont(custom_font)
         start_button.setStyleSheet("""
             QPushButton {
                 background-color: #0038b8;
                 color: white;
-                font-size: 18px;
                 font-weight: bold;
                 border-radius: 75px;
             }
@@ -100,296 +72,292 @@ class DOBScraperGUI(QMainWindow):
                 background-color: #004fd6;
             }
         """)
-        start_button.clicked.connect(self.start_scraping)
-        
-        # Add to layout
+        start_button.clicked.connect(self.show_category_screen)
+
         layout.addStretch()
         layout.addWidget(start_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch()
-        
+
         start_screen.setLayout(layout)
         self.stack.addWidget(start_screen)
-    
-    def create_loading_screen(self):
-        """Create loading screen with animated flag"""
-        self.loading_screen = QWidget()
+
+    def show_category_screen(self):
+        """Show the accordion menu"""
+        self.category_screen = QWidget()
         layout = QVBoxLayout()
-        
-        # Create label for GIF
-        self.loading_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
-        
-        # Status label
-        self.status_label = QLabel("Fetching NYC Open Data...", alignment=Qt.AlignmentFlag.AlignCenter)
-        self.status_label.setStyleSheet("font-size: 16px; color: #333;")
-        
-        # Add to layout
-        layout.addStretch()
-        layout.addWidget(self.loading_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.status_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addStretch()
-        
-        self.loading_screen.setLayout(layout)
-        self.stack.addWidget(self.loading_screen)
-    
-    def start_scraping(self):
-        """Begin the scraping process"""
-        self.stack.setCurrentWidget(self.loading_screen)
-        
-        # Try to load the flag GIF
+
+        categories = [
+            ("Recent Periods", self.show_recent_periods),
+            ("Past Years", self.show_past_years),
+            ("All Since 2015", lambda: self.begin_scraping("2015-01-01"))
+        ]
+
+        for label, func in categories:
+            button = QPushButton(label)
+            button.setFixedSize(250, 60)
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #0038b8;
+                    color: white;
+                    font-size: 16px;
+                    border-radius: 10px;
+                    font-family: Arial;
+                }
+                QPushButton:hover {
+                    background-color: #004fd6;
+                }
+            """)
+            button.clicked.connect(func)
+            layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
+            layout.addSpacing(20)
+
+        self.category_screen.setLayout(layout)
+        self.stack.addWidget(self.category_screen)
+        self.stack.setCurrentWidget(self.category_screen)
+
+    def show_recent_periods(self):
+        """Show Recent Periods selection"""
+        self.show_period_buttons([
+            ("Today", 0),
+            ("1 Week", 7),
+            ("2 Weeks", 14),
+            ("1 Month", 30),
+            ("3 Months", 90),
+            ("6 Months", 180),
+        ])
+
+    def show_past_years(self):
+        """Show Past Years selection"""
+        self.show_period_buttons([
+            ("1 Year", 365),
+            ("2 Years", 730),
+            ("3 Years", 1095),
+            ("4 Years", 1460),
+            ("5 Years", 1825),
+            ("6 Years", 2190),
+            ("7 Years", 2555),
+            ("8 Years", 2920),
+            ("9 Years", 3285),
+        ])
+
+    def show_period_buttons(self, options):
+        """Generate dynamic period buttons"""
+        self.period_screen = QWidget()
+        layout = QVBoxLayout()
+
+        for label, days in options:
+            button = QPushButton(label)
+            button.setFixedSize(120, 120)
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #0038b8;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 14px;
+                    border-radius: 60px;
+                    font-family: Arial;
+                }
+                QPushButton:hover {
+                    background-color: #004fd6;
+                }
+            """)
+            button.clicked.connect(lambda checked, d=days: self.calculate_start_date(d))
+            layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
+            layout.addSpacing(15)
+
+        self.period_screen.setLayout(layout)
+        self.stack.addWidget(self.period_screen)
+        self.stack.setCurrentWidget(self.period_screen)
+
+    def calculate_start_date(self, days_back):
+        today = datetime.today()
+        new_start = today - timedelta(days=days_back)
+        # Enforce minimum date of Jan 1, 2015
+        if new_start < datetime(2015, 1, 1):
+            new_start = datetime(2015, 1, 1)
+        self.begin_scraping(new_start.strftime("%Y-%m-%d"))
+
+    def begin_scraping(self, start_date):
+        self.start_date = start_date
+        self.show_loading_screen()
+
+    def show_loading_screen(self):
+        """Show Israeli flag while scraping"""
+        loading_screen = QWidget()
+        layout = QVBoxLayout()
+
+        self.flag_label = QLabel()
+        self.flag_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         flag_path = resource_path("assets/flag.gif")
         if os.path.exists(flag_path):
-            self.movie = QMovie(flag_path)
-            self.loading_label.setMovie(self.movie)
-            self.movie.start()
+            self.flag_movie = QMovie(flag_path)
+            self.flag_label.setMovie(self.flag_movie)
+            self.flag_movie.start()
         else:
-            self.loading_label.setText("⚠️ Flag GIF not found")
-            self.loading_label.setStyleSheet("font-size: 18px; color: red;")
-        
-        # Schedule the actual scraping process
-        QTimer.singleShot(500, self.perform_scraping)
-    
-    def perform_scraping(self):
-        """Execute the actual scraping logic"""
-        self.status_label.setText("Fetching violations data...")
-        
-        # For testing, use MockResult if scraper not available
-        if scrape_violations is None:
-            class MockResult:
-                def __init__(self, has_results=True):
-                    self.empty = not has_results
-            
-            # Simulate scraping delay
-            QTimer.singleShot(3000, lambda: self.scrape_done(MockResult(True)))
+            self.flag_label.setText("Loading...")
+
+        layout.addStretch()
+        layout.addWidget(self.flag_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addStretch()
+
+        loading_screen.setLayout(layout)
+        self.stack.addWidget(loading_screen)
+        self.stack.setCurrentWidget(loading_screen)
+
+        # Start scraping after short delay
+        QTimer.singleShot(500, self.scrape_violations)
+
+    def scrape_violations(self):
+        result = scrape_violations(start_date=self.start_date)
+        self.handle_scrape_result(result)
+
+    def handle_scrape_result(self, result):
+        if result.empty:
+            self.show_failure_screen()
         else:
-            try:
-                # Try to run the actual scraper
-                QTimer.singleShot(100, self.run_scraper)
-            except Exception as e:
-                self.status_label.setText(f"Error: {str(e)}")
-                # Show error after 2 seconds
-                QTimer.singleShot(2000, lambda: self.scrape_done(pd.DataFrame()))
-    
-    def run_scraper(self):
-        """Run the actual scraper in a way that won't freeze the GUI"""
-        try:
-            # Get data from the scraper
-            df = scrape_violations()
-            self.scrape_done(df)
-        except Exception as e:
-            print(f"Scraping error: {e}")
-            self.scrape_done(pd.DataFrame())
-    
-    def scrape_done(self, result):
-        """Handle completion of scraping"""
-        # Stop the flag animation if it's running
-        if hasattr(self, 'movie') and self.movie:
-            self.movie.stop()
-        
-        # Check if we have results
-        self.has_results = hasattr(result, 'empty') and not result.empty if hasattr(result, 'empty') else False
-        
-        # Generate Excel file if we have results
-        if self.has_results:
+            from excel_generator import generate_excel
             generate_excel(result)
             self.show_success_screen()
-        else:
-            self.show_failure_screen()
-    
+
     def show_success_screen(self):
-        """Show the success screen with Mazel Tov animation"""
-        self.results_screen = QWidget()
+        """Show Mazel Tov after success"""
+        success_screen = QWidget()
         layout = QVBoxLayout()
-        
-        # Create label for Mazel Tov GIF
-        self.result_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addStretch()
-        layout.addWidget(self.result_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addStretch()
-        
-        self.results_screen.setLayout(layout)
-        self.stack.addWidget(self.results_screen)
-        
-        # Try to load and play the Mazel Tov GIF
+
+        self.success_label = QLabel()
+        self.success_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gif_path = resource_path("assets/mazeltov.gif")
+
         if os.path.exists(gif_path):
-            self.result_movie = QMovie(gif_path)
-            self.result_label.setMovie(self.result_movie)
-            self.gif_loop_count = 0
-            
-            def check_loop():
-                if self.result_movie.currentFrameNumber() == self.result_movie.frameCount() - 1:
-                    self.gif_loop_count += 1
-                    if self.gif_loop_count >= 3:
-                        self.result_movie.stop()
-                        self.result_label.clear()
-                        self.show_success_button()
-                    else:
-                        frame_count = self.result_movie.frameCount()
-                        if frame_count > 0:
-                            duration = self.result_movie.nextFrameDelay() * frame_count
-                            QTimer.singleShot(duration, check_loop)
-            
-            self.result_movie.frameChanged.connect(lambda: check_loop())
-            self.result_movie.start()
+            self.success_movie = QMovie(gif_path)
+            self.success_label.setMovie(self.success_movie)
+            self.success_movie.start()
         else:
-            # If GIF is missing, show a message and the button
-            self.result_label.setText("Success! Mazel Tov!")
-            self.result_label.setStyleSheet("font-size: 24px; color: green;")
-            QTimer.singleShot(1500, self.show_success_button)
-        
-        self.stack.setCurrentWidget(self.results_screen)
-    
-    def show_success_button(self):
-        """Show the View Results button after animation completes"""
-        new_screen = QWidget()
+            self.success_label.setText("Success!")
+
+        layout.addStretch()
+        layout.addWidget(self.success_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addStretch()
+
+        success_screen.setLayout(layout)
+        self.stack.addWidget(success_screen)
+        self.stack.setCurrentWidget(success_screen)
+
+        # After 3 loops, show "View Results"
+        self.success_movie.frameChanged.connect(self.check_success_loops)
+        self.success_loops = 0
+
+    def check_success_loops(self):
+        if self.success_movie.currentFrameNumber() == self.success_movie.frameCount() - 1:
+            self.success_loops += 1
+            if self.success_loops >= 3:
+                self.success_movie.stop()
+                self.show_view_results_button()
+
+    def show_view_results_button(self):
+        screen = QWidget()
         layout = QVBoxLayout()
-        
-        view_results_button = QPushButton("View Results")
-        view_results_button.setFixedSize(150, 150)
-        view_results_button.setStyleSheet("""
+
+        view_button = QPushButton("View Results")
+        view_button.setFixedSize(150, 150)
+        view_button.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
                 color: white;
-                font-size: 18px;
                 font-weight: bold;
+                font-size: 16px;
                 border-radius: 75px;
-                font-family: 'Arial';
+                font-family: Arial;
             }
             QPushButton:hover {
                 background-color: #45a049;
             }
         """)
-        view_results_button.clicked.connect(self.view_results)
-        
+        view_button.clicked.connect(self.view_excel)
+
         layout.addStretch()
-        layout.addWidget(view_results_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(view_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch()
-        
-        new_screen.setLayout(layout)
-        self.stack.removeWidget(self.results_screen)
-        self.results_screen = new_screen
-        self.stack.addWidget(self.results_screen)
-        self.stack.setCurrentWidget(self.results_screen)
-    
+
+        screen.setLayout(layout)
+        self.stack.addWidget(screen)
+        self.stack.setCurrentWidget(screen)
+
     def show_failure_screen(self):
-        """Show the failure screen with Oy Vey animation"""
-        self.results_screen = QWidget()
+        """Show Oy Vey after failure"""
+        fail_screen = QWidget()
         layout = QVBoxLayout()
-        
-        # Create label for Oy Vey GIF
-        self.result_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addStretch()
-        layout.addWidget(self.result_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addStretch()
-        
-        self.results_screen.setLayout(layout)
-        self.stack.addWidget(self.results_screen)
-        
-        # Try to load and play the Oy Vey GIF
+
+        self.fail_label = QLabel()
+        self.fail_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gif_path = resource_path("assets/oyvey.gif")
+
         if os.path.exists(gif_path):
-            self.result_movie = QMovie(gif_path)
-            self.result_label.setMovie(self.result_movie)
-            self.gif_loop_count = 0
-            
-            def check_loop():
-                if self.result_movie.currentFrameNumber() == self.result_movie.frameCount() - 1:
-                    self.gif_loop_count += 1
-                    if self.gif_loop_count >= 2:
-                        self.result_movie.stop()
-                        self.show_error_buttons()
-                    else:
-                        frame_count = self.result_movie.frameCount()
-                        if frame_count > 0:
-                            duration = self.result_movie.nextFrameDelay() * frame_count
-                            QTimer.singleShot(duration, check_loop)
-            
-            self.result_movie.frameChanged.connect(lambda: check_loop())
-            self.result_movie.start()
+            self.fail_movie = QMovie(gif_path)
+            self.fail_label.setMovie(self.fail_movie)
+            self.fail_movie.start()
         else:
-            # If GIF is missing, show a message and the buttons
-            self.result_label.setText("No results found! Oy Vey!")
-            self.result_label.setStyleSheet("font-size: 24px; color: #CC0000;")
-            QTimer.singleShot(1500, self.show_error_buttons)
-        
-        self.stack.setCurrentWidget(self.results_screen)
-    
+            self.fail_label.setText("No Results Found.")
+
+        layout.addStretch()
+        layout.addWidget(self.fail_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addStretch()
+
+        fail_screen.setLayout(layout)
+        self.stack.addWidget(fail_screen)
+        self.stack.setCurrentWidget(fail_screen)
+
+        # After 2 loops, show Home/Close
+        self.fail_movie.frameChanged.connect(self.check_failure_loops)
+        self.fail_loops = 0
+
+    def check_failure_loops(self):
+        if self.fail_movie.currentFrameNumber() == self.fail_movie.frameCount() - 1:
+            self.fail_loops += 1
+            if self.fail_loops >= 2:
+                self.fail_movie.stop()
+                self.show_error_buttons()
+
     def show_error_buttons(self):
-        """Show buttons after Oy Vey animation"""
-        new_screen = QWidget()
+        screen = QWidget()
         layout = QVBoxLayout()
-        
-        # Create buttons
+
         home_button = QPushButton("Home")
         home_button.setFixedSize(100, 100)
-        home_button.setStyleSheet("""
-            QPushButton {
-                background-color: #0038b8;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 50px;
-            }
-            QPushButton:hover {
-                background-color: #004fd6;
-            }
-        """)
-        home_button.clicked.connect(self.show_home)
-        
+        home_button.clicked.connect(self.restart_app)
+
         close_button = QPushButton("Close")
         close_button.setFixedSize(100, 100)
-        close_button.setStyleSheet("""
-            QPushButton {
-                background-color: #0038b8;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 50px;
-            }
-            QPushButton:hover {
-                background-color: #004fd6;
-            }
-        """)
         close_button.clicked.connect(self.close)
-        
-        # Add buttons side by side in horizontal layout
+
         button_layout = QHBoxLayout()
-        button_layout.addStretch()
         button_layout.addWidget(home_button)
-        button_layout.addSpacing(20)
         button_layout.addWidget(close_button)
-        button_layout.addStretch()
-        
+
         layout.addStretch()
         layout.addLayout(button_layout)
         layout.addStretch()
-        
-        new_screen.setLayout(layout)
-        
-        # Replace the GIF screen with button screen
-        self.stack.removeWidget(self.results_screen)
-        self.results_screen = new_screen
-        self.stack.addWidget(self.results_screen)
-        self.stack.setCurrentWidget(self.results_screen)
-    
-    def show_home(self):
-        """Return to the start screen"""
+
+        screen.setLayout(layout)
+        self.stack.addWidget(screen)
+        self.stack.setCurrentWidget(screen)
+
+    def restart_app(self):
         self.stack.setCurrentIndex(0)
-    
-    def view_results(self):
-        """Open the generated Excel file and exit"""
+
+    def view_excel(self):
         path = os.path.abspath("violations.xlsx")
         if os.path.exists(path):
             try:
-                if os.name == 'nt':
+                if sys.platform == "win32":
                     os.startfile(path)
                 else:
-                    subprocess.Popen(['xdg-open', path])
+                    subprocess.Popen(["xdg-open", path])
             except Exception as e:
                 print(f"Failed to open Excel: {e}")
         self.close()
 
-# Main execution
+# Main Execution
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = DOBScraperGUI()
