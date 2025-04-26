@@ -80,7 +80,7 @@ class DOBScraperGUI(QMainWindow):
         if os.path.exists(font_path):
             font_id = QFontDatabase.addApplicationFont(font_path)
             if font_id != -1:
-                font_families = QFont.applicationFontFamilies(font_id)
+                font_families = QFontDatabase.applicationFontFamilies(font_id)
                 if font_families:
                     custom_font = QFont(font_families[0], 14)
         
