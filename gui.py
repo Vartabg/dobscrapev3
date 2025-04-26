@@ -6,7 +6,7 @@ import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect
-from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette
+from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette, QPainter, QPixmap
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
     QStackedWidget, QHBoxLayout, QGridLayout, QGraphicsDropShadowEffect
@@ -24,6 +24,83 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+class HebrewStyleButton(QPushButton):
+    """Custom button with Jewish styling"""
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self.primary_color = "#0038b8"  # Israeli blue
+        self.hover_color = "#1a4fc8"
+        self.pressed_color = "#002a8c"
+        self.text_color = "white"
+        
+        # Default state
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.primary_color};
+                color: {self.text_color};
+                border: none;
+                border-radius: 4px;
+                font-weight: bold;
+                padding: 8px 16px;
+                text-align: center;
+            }}
+            QPushButton:hover {{
+                background-color: {self.hover_color};
+                border-left: 4px solid #ffdb58; /* Gold accent on hover */
+                border-right: 4px solid #ffdb58;
+            }}
+            QPushButton:pressed {{
+                background-color: {self.pressed_color};
+                padding-left: 10px;
+                padding-top: 10px;
+            }}
+        """)
+        
+        # Add drop shadow
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(3, 3)
+        self.setGraphicsEffect(shadow)
+        
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        
+        # Add Star of David accent (subtle)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Draw small Star of David in top right corner
+        star_size = min(self.width(), self.height()) * 0.15
+        margin = 5
+        
+        # Create Star of David using lines
+        painter.setPen(QColor(255, 255, 255, 70))  # Semi-transparent white
+        
+        # Triangle facing up
+        x1 = self.width() - margin - star_size
+        y1 = margin + star_size
+        x2 = self.width() - margin - star_size/2
+        y2 = margin
+        x3 = self.width() - margin
+        y3 = margin + star_size
+        
+        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+        painter.drawLine(int(x2), int(y2), int(x3), int(y3))
+        painter.drawLine(int(x3), int(y3), int(x1), int(y1))
+        
+        # Triangle facing down
+        x4 = self.width() - margin - star_size
+        y4 = margin
+        x5 = self.width() - margin - star_size/2
+        y5 = margin + star_size
+        x6 = self.width() - margin
+        y6 = margin
+        
+        painter.drawLine(int(x4), int(y4), int(x5), int(y5))
+        painter.drawLine(int(x5), int(y5), int(x6), int(y6))
+        painter.drawLine(int(x6), int(y6), int(x4), int(y4))
 
 class DOBScraperGUI(QMainWindow):
     def __init__(self):
@@ -43,6 +120,9 @@ class DOBScraperGUI(QMainWindow):
         self.hover_color = "#1a4fc8"
         self.pressed_color = "#002a8c"
         self.text_color = "white"
+        
+        # Load Hebrew-inspired font
+        self.setup_fonts()
 
         self.start_screen()
         self.stack.setCurrentIndex(0)
@@ -50,39 +130,32 @@ class DOBScraperGUI(QMainWindow):
     def setup_shortcuts(self):
         QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
         QShortcut(QKeySequence("Esc"), self, self.close)
+    
+    def setup_fonts(self):
+        """Set up Hebrew-inspired fonts"""
+        # Try to load Jewish font
+        font_path = resource_path("assets/fonts/jewish.ttf")
+        self.hebrew_font_family = "Arial"  # Default fallback
+        
+        if os.path.exists(font_path):
+            font_id = QFontDatabase.addApplicationFont(font_path)
+            if font_id != -1:
+                family = QFontDatabase.applicationFontFamilies(font_id)
+                if family:
+                    self.hebrew_font_family = family[0]
+                    print(f"Loaded Hebrew font: {self.hebrew_font_family}")
+        
+        # Set font sizes
+        self.title_font = QFont(self.hebrew_font_family, 24, QFont.Weight.Bold)
+        self.subtitle_font = QFont(self.hebrew_font_family, 16)
+        self.button_font = QFont(self.hebrew_font_family, 12, QFont.Weight.Bold)
+        self.small_font = QFont(self.hebrew_font_family, 10)
 
     def create_styled_button(self, text, width=200, height=50, connect_to=None):
-        """Create a consistently styled button with animation effect on hover"""
-        button = QPushButton(text)
+        """Create a custom Hebrew-styled button"""
+        button = HebrewStyleButton(text)
         button.setFixedSize(width, height)
-        button.setFont(QFont("Arial", 12))
-        
-        # Style with QSS - no box-shadow
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {self.primary_color};
-                color: {self.text_color};
-                border: none;
-                border-radius: 4px;
-                font-weight: bold;
-                padding: 8px 16px;
-            }}
-            QPushButton:hover {{
-                background-color: {self.hover_color};
-            }}
-            QPushButton:pressed {{
-                background-color: {self.pressed_color};
-                padding-left: 10px;
-                padding-top: 10px;
-            }}
-        """)
-        
-        # Add drop shadow effect
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setColor(QColor(0, 0, 0, 80))
-        shadow.setOffset(3, 3)
-        button.setGraphicsEffect(shadow)
+        button.setFont(self.button_font)
         
         # Connect signal if provided
         if connect_to:
@@ -136,30 +209,18 @@ class DOBScraperGUI(QMainWindow):
         start_screen = QWidget()
         layout = QVBoxLayout()
 
-        # Jewish font if available
-        font_path = resource_path("assets/fonts/jewish.ttf")
-        title_font = QFont("Arial", 24, QFont.Weight.Bold)
-        subtitle_font = QFont("Arial", 16)
-        
-        if os.path.exists(font_path):
-            font_id = QFontDatabase.addApplicationFont(font_path)
-            if font_id != -1:
-                family = QFontDatabase.applicationFontFamilies(font_id)
-                if family:
-                    title_font = QFont(family[0], 24, QFont.Weight.Bold)
-                    subtitle_font = QFont(family[0], 16)
-
         # Title
         title_label = QLabel("DOB Violations Scraper")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(title_font)
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         
         # Subtitle
-        subtitle_label = QLabel("Efficient Building Violation Reports")
+        subtitle_label = QLabel("Building Violation Reports")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setFont(subtitle_font)
+        subtitle_label.setFont(self.subtitle_font)
 
-        # Start button
+        # Start button with Jewish style
         start_button = self.create_styled_button("Start", 200, 60, self.show_category_screen)
 
         layout.addStretch()
@@ -181,7 +242,8 @@ class DOBScraperGUI(QMainWindow):
         # Title
         title_label = QLabel("Select Category")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         
         layout.addWidget(title_label)
         layout.addSpacing(30)
@@ -240,7 +302,8 @@ class DOBScraperGUI(QMainWindow):
         # Header
         title_label = QLabel(title_text)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         main_layout.addWidget(title_label)
         main_layout.addSpacing(20)
         
@@ -250,7 +313,7 @@ class DOBScraperGUI(QMainWindow):
         
         # Add buttons to grid
         for i, (label, days) in enumerate(options):
-            # Create button with same style but rectangular
+            # Create button with Jewish style
             button = self.create_styled_button(label, 180, 50)
             # Use lambda to capture specific days value
             button.clicked.connect(lambda checked, d=days: self.calculate_start_date(d))
@@ -289,12 +352,13 @@ class DOBScraperGUI(QMainWindow):
         # Title
         title_label = QLabel("Processing Request")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         
         # Subtitle with date
         subtitle_label = QLabel(f"Searching for violations since {self.start_date}")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setFont(QFont("Arial", 16))
+        subtitle_label.setFont(self.subtitle_font)
 
         self.flag_label = QLabel()
         self.flag_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -358,7 +422,7 @@ class DOBScraperGUI(QMainWindow):
         self.success_movie, is_success_valid = self._create_safe_qmovie(
             gif_path,
             self.success_label,
-            "Success!"
+            "Mazel Tov!"
         )
 
         layout.addStretch()
@@ -383,19 +447,20 @@ class DOBScraperGUI(QMainWindow):
             self.show_final_success_screen()
 
     def show_final_success_screen(self):
-        """Show final success screen with sleek, professional design"""
+        """Show final success screen with Hebrew styling"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title in sophisticated font
-        title_label = QLabel("Success")
+        # Title using Hebrew font
+        title_label = QLabel("Mazel Tov!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         
         # Subtitle
         subtitle_label = QLabel("Violation report generated successfully")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setFont(QFont("Arial", 16))
+        subtitle_label.setFont(self.subtitle_font)
         
         # File info in clean, minimal style
         file_info = QLabel(f"Location: {self.output_file_path}")
@@ -403,7 +468,7 @@ class DOBScraperGUI(QMainWindow):
         file_info.setFont(QFont("Arial", 12))
         file_info.setWordWrap(True)
         
-        # Professional buttons
+        # Hebrew styled buttons
         view_button = self.create_styled_button("View Report", 200, 50, self.view_excel)
         home_button = self.create_styled_button("Return Home", 180, 50, self.restart_app)
         exit_button = self.create_styled_button("Exit", 180, 50, self.close)
@@ -444,7 +509,7 @@ class DOBScraperGUI(QMainWindow):
         self.fail_movie, is_fail_valid = self._create_safe_qmovie(
             gif_path,
             self.fail_label,
-            "No Results Found"
+            "Oy Vey!"
         )
 
         layout.addStretch()
@@ -469,22 +534,23 @@ class DOBScraperGUI(QMainWindow):
             self.show_final_failure_screen()
 
     def show_final_failure_screen(self):
-        """Show final failure screen with sleek, professional design"""
+        """Show final failure screen with Hebrew styling"""
         screen = QWidget()
         layout = QVBoxLayout()
         
-        # Title in sophisticated font
-        title_label = QLabel("No Violations Found")
+        # Title using Hebrew font
+        title_label = QLabel("Oy Vey!")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setFont(self.title_font)
+        title_label.setStyleSheet("color: #0038b8;")  # Israeli blue
         
         # Subtitle
         subtitle_label = QLabel("No building violations were found for the selected dates")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setFont(QFont("Arial", 16))
+        subtitle_label.setFont(self.subtitle_font)
         subtitle_label.setWordWrap(True)
         
-        # Professional buttons
+        # Hebrew styled buttons
         home_button = self.create_styled_button("Try Again", 180, 50, self.restart_app)
         exit_button = self.create_styled_button("Exit", 180, 50, self.close)
         
