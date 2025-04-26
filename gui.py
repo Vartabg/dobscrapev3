@@ -5,7 +5,7 @@ import sys
 import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect, QPoint, QSize, QParallelAnimationGroup
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect, QPoint, QSize, QParallelAnimationGroup, QAbstractAnimation
 from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase, QColor, QPalette, QLinearGradient, QPainter, QPen, QPainterPath, QBrush
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
@@ -172,7 +172,7 @@ class HarmonizedButton(QPushButton):
         animations.addAnimation(offset_anim)
         
         # Start animations
-        animations.start(QPropertyAnimation.DeleteWhenStopped)
+        animations.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
         
         self.update()  # Repaint with hover state
         super().enterEvent(event)
@@ -201,7 +201,7 @@ class HarmonizedButton(QPushButton):
         animations.addAnimation(offset_anim)
         
         # Start animations
-        animations.start(QPropertyAnimation.DeleteWhenStopped)
+        animations.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
         
         self.update()  # Repaint with normal state
         super().leaveEvent(event)
@@ -280,7 +280,7 @@ class HarmonizedButton(QPushButton):
         
         # Delete ripple when done
         group.finished.connect(ripple.deleteLater)
-        group.start(QPropertyAnimation.DeleteWhenStopped)
+        group.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
 
 class DOBScraperGUI(QMainWindow):
