@@ -5,11 +5,11 @@ import sys
 import subprocess
 import pandas as pd
 from datetime import datetime, timedelta
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QSize
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QMovie, QKeySequence, QShortcut, QFont, QFontDatabase
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout, QPushButton,
-    QStackedWidget, QHBoxLayout
+    QStackedWidget, QHBoxLayout, QGridLayout
 )
 
 # Import scraper
@@ -36,6 +36,7 @@ class DOBScraperGUI(QMainWindow):
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
         self.setup_shortcuts()
+        self.output_file_path = os.path.abspath("violations.xlsx")
 
         self.start_screen()
         self.stack.setCurrentIndex(0)
@@ -44,21 +45,12 @@ class DOBScraperGUI(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
         QShortcut(QKeySequence("Esc"), self, self.close)
 
-    # Safe QMovie loader from Gemini's implementation
+    # Safe QMovie loader
     def _create_safe_qmovie(self, asset_path, target_label, fallback_text, scaled_size=None):
         """
         Safely creates and assigns a QMovie to a QLabel, checking for file
         existence and movie validity. Sets fallback text on the label if the
         asset is missing or invalid.
-
-        Args:
-            asset_path (str): The resolved absolute path to the GIF asset.
-            target_label (QLabel): The QLabel widget to display the movie or fallback text.
-            fallback_text (str): Text to display in the label if the asset is not found or invalid.
-            scaled_size (QSize, optional): Desired QSize for the QMovie scaling. Defaults to None.
-
-        Returns:
-            tuple: (QMovie | None, bool): Created QMovie object (or None) and validity flag.
         """
         movie = None
         is_valid = False
@@ -70,7 +62,7 @@ class DOBScraperGUI(QMainWindow):
             try:
                 movie = QMovie(asset_path)
                 if movie.isValid():
-                    if scaled_size and isinstance(scaled_size, QSize):
+                    if scaled_size:
                         movie.setScaledSize(scaled_size)
                     target_label.setMovie(movie)
                     is_valid = True
@@ -109,6 +101,16 @@ class DOBScraperGUI(QMainWindow):
                 if family:
                     custom_font = QFont(family[0], 18)
 
+        # Title
+        title_label = QLabel("Mr. 4 in a Row")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setFont(QFont(custom_font.family(), 24, QFont.Weight.Bold))
+        
+        # Subtitle
+        subtitle_label = QLabel("Building Violations Scraper")
+        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label.setFont(QFont(custom_font.family(), 16))
+
         start_button = QPushButton("Start")
         start_button.setFixedSize(150, 150)
         start_button.setFont(custom_font)
@@ -118,14 +120,20 @@ class DOBScraperGUI(QMainWindow):
                 color: white;
                 font-weight: bold;
                 border-radius: 75px;
+                border: 1px solid #0038b8;
             }
             QPushButton:hover {
                 background-color: #004fd6;
+                border: 2px solid #66a3ff;
             }
         """)
         start_button.clicked.connect(self.show_category_screen)
 
         layout.addStretch()
+        layout.addWidget(title_label)
+        layout.addSpacing(10)
+        layout.addWidget(subtitle_label)
+        layout.addSpacing(40)
         layout.addWidget(start_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch()
 
@@ -136,6 +144,14 @@ class DOBScraperGUI(QMainWindow):
         """Show the accordion menu"""
         self.category_screen = QWidget()
         layout = QVBoxLayout()
+        
+        # Title
+        title_label = QLabel("Select Category")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        
+        layout.addWidget(title_label)
+        layout.addSpacing(30)
 
         categories = [
             ("Recent Periods", self.show_recent_periods),
@@ -152,15 +168,36 @@ class DOBScraperGUI(QMainWindow):
                     color: white;
                     font-size: 16px;
                     border-radius: 10px;
-                    font-family: Arial;
+                    border: 1px solid #0038b8;
                 }
                 QPushButton:hover {
                     background-color: #004fd6;
+                    border: 2px solid #66a3ff;
                 }
             """)
             button.clicked.connect(func)
             layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
             layout.addSpacing(20)
+        
+        # Back button
+        back_button = QPushButton("Back")
+        back_button.setFixedSize(100, 40)
+        back_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                border-radius: 10px;
+                border: 1px solid #0038b8;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+                border: 2px solid #66a3ff;
+            }
+        """)
+        back_button.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        
+        layout.addSpacing(20)
+        layout.addWidget(back_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.category_screen.setLayout(layout)
         self.stack.addWidget(self.category_screen)
@@ -175,7 +212,7 @@ class DOBScraperGUI(QMainWindow):
             ("1 Month", 30),
             ("3 Months", 90),
             ("6 Months", 180),
-        ])
+        ], "Recent Periods")
 
     def show_past_years(self):
         """Show Past Years selection"""
@@ -189,14 +226,26 @@ class DOBScraperGUI(QMainWindow):
             ("7 Years", 2555),
             ("8 Years", 2920),
             ("9 Years", 3285),
-        ])
+        ], "Past Years")
 
-    def show_period_buttons(self, options):
-        """Generate dynamic period buttons"""
+    def show_period_buttons(self, options, title_text):
+        """Generate dynamic period buttons in a grid layout"""
         self.period_screen = QWidget()
         layout = QVBoxLayout()
-
-        for label, days in options:
+        
+        # Header
+        title_label = QLabel(title_text)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        layout.addWidget(title_label)
+        layout.addSpacing(20)
+        
+        # Grid layout for buttons - 3 columns
+        grid_layout = QGridLayout()
+        grid_layout.setSpacing(15)
+        
+        # Add buttons to grid
+        for i, (label, days) in enumerate(options):
             button = QPushButton(label)
             button.setFixedSize(120, 120)
             button.setStyleSheet("""
@@ -206,16 +255,39 @@ class DOBScraperGUI(QMainWindow):
                     font-weight: bold;
                     font-size: 14px;
                     border-radius: 60px;
-                    font-family: Arial;
+                    border: 1px solid #0038b8;
                 }
                 QPushButton:hover {
                     background-color: #004fd6;
+                    border: 2px solid #66a3ff;
                 }
             """)
             button.clicked.connect(lambda checked, d=days: self.calculate_start_date(d))
-            layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
-            layout.addSpacing(15)
-
+            row, col = divmod(i, 3)  # 3 columns
+            grid_layout.addWidget(button, row, col)
+        
+        # Back button
+        back_button = QPushButton("Back")
+        back_button.setFixedSize(100, 40)
+        back_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                border-radius: 10px;
+                border: 1px solid #0038b8;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+                border: 2px solid #66a3ff;
+            }
+        """)
+        back_button.clicked.connect(self.show_category_screen)
+        
+        # Add grid to main layout
+        layout.addLayout(grid_layout)
+        layout.addSpacing(20)
+        layout.addWidget(back_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        
         self.period_screen.setLayout(layout)
         self.stack.addWidget(self.period_screen)
         self.stack.setCurrentWidget(self.period_screen)
@@ -236,6 +308,16 @@ class DOBScraperGUI(QMainWindow):
         """Show Israeli flag while scraping"""
         loading_screen = QWidget()
         layout = QVBoxLayout()
+        
+        # Title
+        title_label = QLabel("Scraping Building Violations")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        
+        # Subtitle with date
+        subtitle_label = QLabel(f"Finding violations since {self.start_date}")
+        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label.setFont(QFont("Arial", 16))
 
         self.flag_label = QLabel()
         self.flag_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -249,6 +331,10 @@ class DOBScraperGUI(QMainWindow):
         )
         
         layout.addStretch()
+        layout.addWidget(title_label)
+        layout.addSpacing(10)
+        layout.addWidget(subtitle_label)
+        layout.addSpacing(30)
         layout.addWidget(self.flag_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch()
 
@@ -320,7 +406,7 @@ class DOBScraperGUI(QMainWindow):
             self.show_final_success_screen()
 
     def show_final_success_screen(self):
-        """Show final success screen with Return Home and Exit App buttons"""
+        """Show final success screen with Return Home, View Results and Exit App buttons"""
         screen = QWidget()
         layout = QVBoxLayout()
         
@@ -347,10 +433,34 @@ class DOBScraperGUI(QMainWindow):
         subtitle_label.setFont(subtitle_font)
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Button style with enhanced hover effect (Israeli blue glow)
-        button_style = """QPushButton { background-color: #0038b8; color: white; font-weight: bold; border-radius: 10px; } QPushButton:hover { background-color: #0046e3; border: 2px solid #66a3ff; box-shadow: 0 0 8px #66a3ff; }"""
+        # Add file location info
+        file_info = QLabel(f"Excel file saved to: {self.output_file_path}")
+        file_info.setFont(QFont("Arial", 12))
+        file_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        file_info.setWordWrap(True)
         
-        # Buttons
+        # Button style with fixed hover effect (no box-shadow)
+        button_style = """
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                font-weight: bold;
+                border-radius: 10px;
+                border: 1px solid #0038b8;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+                border: 2px solid #66a3ff;
+            }
+        """
+        
+        # View Results button
+        view_button = QPushButton("🔍 View Excel Results")
+        view_button.setFixedSize(200, 50)
+        view_button.setStyleSheet(button_style)
+        view_button.clicked.connect(self.view_excel)
+        
+        # Home and Exit buttons
         home_button = QPushButton("🏠 Return Home")
         home_button.setFixedSize(150, 50)
         home_button.setStyleSheet(button_style)
@@ -361,7 +471,7 @@ class DOBScraperGUI(QMainWindow):
         exit_button.setStyleSheet(button_style)
         exit_button.clicked.connect(self.close)
         
-        # Button layout
+        # Button layout for Home/Exit
         button_layout = QHBoxLayout()
         button_layout.addWidget(home_button)
         button_layout.addSpacing(20)
@@ -372,7 +482,11 @@ class DOBScraperGUI(QMainWindow):
         layout.addWidget(title_label)
         layout.addSpacing(20)
         layout.addWidget(subtitle_label)
-        layout.addSpacing(40)
+        layout.addSpacing(10)
+        layout.addWidget(file_info)
+        layout.addSpacing(30)
+        layout.addWidget(view_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addSpacing(20)
         layout.addLayout(button_layout)
         layout.addStretch()
         
@@ -445,8 +559,20 @@ class DOBScraperGUI(QMainWindow):
         subtitle_label.setFont(subtitle_font)
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Button style with enhanced hover effect (Israeli blue glow)
-        button_style = """QPushButton { background-color: #0038b8; color: white; font-weight: bold; border-radius: 10px; } QPushButton:hover { background-color: #0046e3; border: 2px solid #66a3ff; box-shadow: 0 0 8px #66a3ff; }"""
+        # Button style with fixed hover effect (no box-shadow)
+        button_style = """
+            QPushButton {
+                background-color: #0038b8;
+                color: white;
+                font-weight: bold;
+                border-radius: 10px;
+                border: 1px solid #0038b8;
+            }
+            QPushButton:hover {
+                background-color: #004fd6;
+                border: 2px solid #66a3ff;
+            }
+        """
         
         # Buttons
         home_button = QPushButton("🏠 Return Home")
@@ -482,16 +608,20 @@ class DOBScraperGUI(QMainWindow):
         self.stack.setCurrentIndex(0)
 
     def view_excel(self):
-        path = os.path.abspath("violations.xlsx")
-        if os.path.exists(path):
+        """Open the generated Excel file"""
+        if os.path.exists(self.output_file_path):
             try:
                 if sys.platform == "win32":
-                    os.startfile(path)
-                else:
-                    subprocess.Popen(["xdg-open", path])
+                    os.startfile(self.output_file_path)
+                elif sys.platform == "darwin":  # macOS
+                    subprocess.Popen(["open", self.output_file_path])
+                else:  # Linux
+                    subprocess.Popen(["xdg-open", self.output_file_path])
+                print(f"Opening Excel file at: {self.output_file_path}")
             except Exception as e:
-                print(f"Failed to open Excel: {e}")
-        self.close()
+                print(f"Failed to open Excel file: {e}")
+        else:
+            print(f"Excel file not found at: {self.output_file_path}")
 
 # Main Execution
 if __name__ == "__main__":
